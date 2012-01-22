@@ -70,11 +70,13 @@
 			<version>4.8.2</version>
 			<scope>test</scope>
 		</dependency>
-		<!-- <dependency>
-			<groupId>org.hypergraphdb</groupId>
-			<artifactId>hgdbfull</artifactId>
-			<version>1.0</version>
-		</dependency>-->
+		<!-- <dependency> <groupId>org.hypergraphdb</groupId> <artifactId>hgdbfull</artifactId> 
+			<version>1.0</version> </dependency> -->
+		<dependency>
+			<groupId>perfidix</groupId>
+			<artifactId>perfidix</artifactId>
+			<version>3.6.4-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<properties>

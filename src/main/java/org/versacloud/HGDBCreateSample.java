@@ -10,48 +10,70 @@ import java.util.Random;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.indexing.ByPartIndexer;
+import org.perfidix.AbstractConfig;
+import org.perfidix.Benchmark;
+import org.perfidix.annotation.BeforeBenchClass;
+import org.perfidix.annotation.Bench;
+import org.perfidix.element.KindOfArrangement;
+import org.perfidix.meter.AbstractMeter;
+import org.perfidix.meter.Time;
+import org.perfidix.meter.TimeMeter;
+import org.perfidix.ouput.AbstractOutput;
+import org.perfidix.ouput.TabularSummaryOutput;
+import org.perfidix.result.BenchmarkResult;
 import org.versacloud.model.Node;
 
 public class HGDBCreateSample {
 
-    public static void main(String[] args) {
+    HyperGraph graph;
+
+    @BeforeBenchClass
+    public void beforeClass() {
         String databaseLocation = "/tmp/bla";
         recursiveDelete(new File(databaseLocation));
-        HyperGraph graph = new HyperGraph(databaseLocation);
+        graph = new HyperGraph(databaseLocation);
+        fill(graph, 10000);
+    }
 
-        fill(graph, 100);
+    public static void main(String[] args) {
+
+        final Benchmark bench = new Benchmark(new Config());
+        bench.add(HGDBCreateSample.class);
+
+        final BenchmarkResult res = bench.run();
+        new TabularSummaryOutput().visitBenchmark(res);
 
         // handles(childNode, graph, handle1, handle2);
 
         // HGBergeLink link = new HGBergeLink(handle1, handle2);
         // graph.add(link);
 
-        query(graph);
     }
 
-    private static void fill(final HyperGraph graph, final int elements) {
-        String name = "root";
-        Random ran = new Random(elements);
-        byte[] secret = new byte[100];
-
-        for (int i = 0; i < elements; i++) {
-            ran.nextBytes(secret);
-            // Inserting node
-            Node node = new Node(name + i, i, secret);
-            graph.add(node);
-
-        }
-
-    }
-
-    private static void query(final HyperGraph graph) {
-
+    @Bench
+    public void query() {
         List nodes = hg.getAll(graph,
                 hg.and(hg.type(Node.class), hg.eq("key", 1l)));
         // List nodes = hg.getAll(graph, hg.type(Node.class));
         for (Object n : nodes) {
-            System.out.println(n);
+            // System.out.println(n);
         }
+    }
+
+    @Bench(beforeFirstRun = "index")
+    public void queryIndexed() {
+        List nodes = hg.getAll(graph,
+                hg.and(hg.type(Node.class), hg.eq("key", 1l)));
+        // List nodes = hg.getAll(graph, hg.type(Node.class));
+        for (Object n : nodes) {
+            // System.out.println(n);
+        }
+    }
+
+    public void index() {
+        HGHandle handle = graph.getTypeSystem().getTypeHandle(Node.class);
+        graph.getIndexManager().register(new ByPartIndexer(handle, "key"));
     }
 
     private static void handles(final Node node, final HyperGraph graph,
@@ -77,6 +99,19 @@ public class HGDBCreateSample {
         System.out.println(obj);
     }
 
+    private static void fill(final HyperGraph graph, final int elements) {
+        String name = "root";
+        Random ran = new Random(elements);
+        byte[] secret = new byte[100];
+
+        for (int i = 0; i < elements; i++) {
+            ran.nextBytes(secret);
+            // Inserting node
+            Node node = new Node(name + i, i, secret);
+            graph.add(node);
+        }
+    }
+
     /**
      * Deleting a storage recursive. Used for deleting a databases
      * 
@@ -93,6 +128,29 @@ public class HGDBCreateSample {
             }
         }
         return paramFile.delete();
+    }
+
+    final static int RUNS = 10;
+    final static AbstractMeter[] METERS = { new TimeMeter(Time.MilliSeconds) };
+    final static AbstractOutput[] OUTPUT = {/*
+                                             * new TabularSummaryOutput()
+                                             */};
+    final static KindOfArrangement ARRAN = KindOfArrangement.SequentialMethodArrangement;
+    final static double GCPROB = 1.0d;
+
+    static class Config extends AbstractConfig {
+
+        /**
+         * @param paramRuns
+         * @param paramMeters
+         * @param paramOutput
+         * @param paramArr
+         * @param paramGC
+         */
+        public Config() {
+            super(RUNS, METERS, OUTPUT, ARRAN, GCPROB);
+        }
+
     }
 
 }

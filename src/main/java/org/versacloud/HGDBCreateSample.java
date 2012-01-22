@@ -90,10 +90,6 @@ public class HGDBCreateSample {
         // see if reset works
         obj = graph.getHandle(node);
 
-        // Working with type handles -> Not working atm
-        // Object clazz1 = graph.getTypeSystem().getType(handle1);
-        // Object clazz2 = graph.getTypeSystem().getType(handle2);
-
         // getting object
         obj = graph.get(handle2);
         System.out.println(obj);

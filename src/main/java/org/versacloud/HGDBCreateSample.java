@@ -33,7 +33,7 @@ public class HGDBCreateSample {
         String databaseLocation = "/tmp/bla";
         recursiveDelete(new File(databaseLocation));
         graph = new HyperGraph(databaseLocation);
-        fill(graph, 100);
+        fillAndIndex(graph, 100);
     }
 
     public static void main(String[] args) {
@@ -51,7 +51,7 @@ public class HGDBCreateSample {
 
     }
 
-    @Bench(beforeFirstRun = "index")
+    @Bench
     public void queryIndexed() {
         /* List nodes = */hg.getAll(graph,
                 hg.and(hg.type(Node.class), hg.eq("key", 1l)));
@@ -59,11 +59,6 @@ public class HGDBCreateSample {
         // for (Object n : nodes) {
         // // System.out.println(n);
         // }
-    }
-
-    public void index() {
-        HGHandle handle = graph.getTypeSystem().getTypeHandle(Node.class);
-        graph.getIndexManager().register(new ByPartIndexer(handle, "key"));
     }
 
     private static void handles(final Node node, final HyperGraph graph,
@@ -85,7 +80,7 @@ public class HGDBCreateSample {
         System.out.println(obj);
     }
 
-    private static void fill(final HyperGraph graph, final int elements) {
+    private static void fillAndIndex(final HyperGraph graph, final int elements) {
         String name = "root";
         Random ran = new Random(elements);
         byte[] secret = new byte[100];
@@ -96,6 +91,10 @@ public class HGDBCreateSample {
             Node node = new Node(name + i, i, secret);
             graph.add(node);
         }
+
+        HGHandle handle = graph.getTypeSystem().getTypeHandle(Node.class);
+        graph.getIndexManager().register(new ByPartIndexer(handle, "key"));
+
     }
 
     /**
@@ -118,21 +117,12 @@ public class HGDBCreateSample {
 
     final static int RUNS = 10;
     final static AbstractMeter[] METERS = { new TimeMeter(Time.MilliSeconds) };
-    final static AbstractOutput[] OUTPUT = {/*
-                                             * new TabularSummaryOutput()
-                                             */};
+    final static AbstractOutput[] OUTPUT = {};
     final static KindOfArrangement ARRAN = KindOfArrangement.SequentialMethodArrangement;
     final static double GCPROB = 1.0d;
 
     static class Config extends AbstractConfig {
 
-        /**
-         * @param paramRuns
-         * @param paramMeters
-         * @param paramOutput
-         * @param paramArr
-         * @param paramGC
-         */
         public Config() {
             super(RUNS, METERS, OUTPUT, ARRAN, GCPROB);
         }

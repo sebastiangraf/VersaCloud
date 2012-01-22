@@ -3,42 +3,52 @@
  */
 package org.versacloud;
 
+import java.io.File;
 import java.util.List;
+import java.util.Random;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.atom.HGBergeLink;
 import org.versacloud.model.Node;
 
 public class HGDBCreateSample {
 
     public static void main(String[] args) {
         String databaseLocation = "/tmp/bla";
+        recursiveDelete(new File(databaseLocation));
         HyperGraph graph = new HyperGraph(databaseLocation);
 
-        byte[] material = { 0, 1, 2, 3, 4, 5 };
-
-        Node childNode = new Node("leaf1", 1l, material);
-        Node rootNode = new Node("root1", 2l, material);
-
-        HGHandle[] handle1 = { graph.add(childNode) };
-        HGHandle[] handle2 = { graph.add(rootNode) };
+        fill(graph, 100);
 
         // handles(childNode, graph, handle1, handle2);
 
-        HGBergeLink link = new HGBergeLink(handle1, handle2);
-        graph.add(link);
+        // HGBergeLink link = new HGBergeLink(handle1, handle2);
+        // graph.add(link);
 
         query(graph);
+    }
+
+    private static void fill(final HyperGraph graph, final int elements) {
+        String name = "root";
+        Random ran = new Random(elements);
+        byte[] secret = new byte[100];
+
+        for (int i = 0; i < elements; i++) {
+            ran.nextBytes(secret);
+            // Inserting node
+            Node node = new Node(name + i, i, secret);
+            graph.add(node);
+
+        }
 
     }
 
     private static void query(final HyperGraph graph) {
 
-        // List nodes = hg.getAll(graph,
-        // hg.and(hg.type(Node.class), hg.eq("key", "1")));
-        List nodes = hg.getAll(graph, hg.type(Node.class));
+        List nodes = hg.getAll(graph,
+                hg.and(hg.type(Node.class), hg.eq("key", 1l)));
+        // List nodes = hg.getAll(graph, hg.type(Node.class));
         for (Object n : nodes) {
             System.out.println(n);
         }
@@ -65,6 +75,24 @@ public class HGDBCreateSample {
         // getting object
         obj = graph.get(handle2);
         System.out.println(obj);
+    }
+
+    /**
+     * Deleting a storage recursive. Used for deleting a databases
+     * 
+     * @param paramFile
+     *            which should be deleted included descendants
+     * @return true if delete is valid
+     */
+    private static boolean recursiveDelete(final File paramFile) {
+        if (paramFile.isDirectory()) {
+            for (final File child : paramFile.listFiles()) {
+                if (!recursiveDelete(child)) {
+                    return false;
+                }
+            }
+        }
+        return paramFile.delete();
     }
 
 }

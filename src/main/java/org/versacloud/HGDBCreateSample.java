@@ -33,7 +33,7 @@ public class HGDBCreateSample {
         String databaseLocation = "/tmp/bla";
         recursiveDelete(new File(databaseLocation));
         graph = new HyperGraph(databaseLocation);
-        fill(graph, 10000);
+        fill(graph, 100);
     }
 
     public static void main(String[] args) {
@@ -51,24 +51,14 @@ public class HGDBCreateSample {
 
     }
 
-    @Bench
-    public void query() {
-        List nodes = hg.getAll(graph,
-                hg.and(hg.type(Node.class), hg.eq("key", 1l)));
-        // List nodes = hg.getAll(graph, hg.type(Node.class));
-        for (Object n : nodes) {
-            // System.out.println(n);
-        }
-    }
-
     @Bench(beforeFirstRun = "index")
     public void queryIndexed() {
-        List nodes = hg.getAll(graph,
+        /* List nodes = */hg.getAll(graph,
                 hg.and(hg.type(Node.class), hg.eq("key", 1l)));
         // List nodes = hg.getAll(graph, hg.type(Node.class));
-        for (Object n : nodes) {
-            // System.out.println(n);
-        }
+        // for (Object n : nodes) {
+        // // System.out.println(n);
+        // }
     }
 
     public void index() {

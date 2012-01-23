@@ -35,16 +35,16 @@ public class HGDBCreateSample {
 	public static void main(String[] args) {
 
 		// Benchmark
-		// final Benchmark bench = new Benchmark(new Config());
-		// bench.add(HGDBCreateSample.class);
-		//
-		// final BenchmarkResult res = bench.run();
-		// new TabularSummaryOutput().visitBenchmark(res);
+		final Benchmark bench = new Benchmark(new Config());
+		bench.add(HGDBCreateSample.class);
 
-		HGDBCreateSample sample = new HGDBCreateSample();
-		sample.beforeClass();
-		// sample.queryLinks();
-		sample.afterClass();
+		final BenchmarkResult res = bench.run();
+		new TabularSummaryOutput().visitBenchmark(res);
+
+//		HGDBCreateSample sample = new HGDBCreateSample();
+//		sample.beforeClass();
+//		sample.queryIndexed();
+//		sample.afterClass();
 	}
 
 	@BeforeBenchClass
@@ -52,7 +52,8 @@ public class HGDBCreateSample {
 		String databaseLocation = "/tmp/bla";
 //		recursiveDelete(new File(databaseLocation));
 		graph = new HyperGraph(databaseLocation);
-		fillAndIndex(graph, 10000);
+//		fillAndIndex(graph, 10000);
+//		addEdges(graph, 1000);
 	}
 
 	@AfterBenchClass
@@ -62,7 +63,7 @@ public class HGDBCreateSample {
 
 	@Bench
 	public void queryIndexed() {
-		List<HGHandle> nodes = hg.getAll(graph,
+		List<HGHandle> nodes = hg.findAll(graph,
 				hg.and(hg.type(Node.class), hg.eq("key", 1l)));
 		// List nodes = hg.getAll(graph, hg.type(Node.class));
 		// for (Object n : nodes) {
@@ -70,9 +71,9 @@ public class HGDBCreateSample {
 		// }
 	}
 
-	// @Bench
+	@Bench
 	public void queryLinks() {
-		addEdges(graph, 1000);
+
 	}
 
 	private static void fillAndIndex(final HyperGraph graph, final int elements) {
@@ -84,8 +85,9 @@ public class HGDBCreateSample {
 			Node node = new Node(name + i, i, secret);
 			graph.add(node);
 		}
-//		HGHandle handle = graph.getTypeSystem().getTypeHandle(Node.class);
-//		graph.getIndexManager().register(new ByPartIndexer(handle, "key"));
+		HGHandle handle = graph.getTypeSystem().getTypeHandle(Node.class);
+		graph.getIndexManager().register(new ByPartIndexer(handle, "key"));
+		graph.runMaintenance();
 	}
 
 	private static void addEdges(final HyperGraph graph, final int edges) {

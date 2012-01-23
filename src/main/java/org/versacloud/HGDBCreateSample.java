@@ -4,13 +4,15 @@
 package org.versacloud;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGLink;
+import org.hypergraphdb.HGPlainLink;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.atom.HGBergeLink;
 import org.hypergraphdb.indexing.ByPartIndexer;
 import org.perfidix.AbstractConfig;
 import org.perfidix.Benchmark;
@@ -29,6 +31,7 @@ import org.versacloud.model.Node;
 public class HGDBCreateSample {
 
 	HyperGraph graph;
+	List<HGHandle> nodes = new ArrayList<HGHandle>();
 
 	static Random ran = new Random();
 
@@ -41,19 +44,20 @@ public class HGDBCreateSample {
 		final BenchmarkResult res = bench.run();
 		new TabularSummaryOutput().visitBenchmark(res);
 
-//		HGDBCreateSample sample = new HGDBCreateSample();
-//		sample.beforeClass();
-//		sample.queryIndexed();
-//		sample.afterClass();
+		// HGDBCreateSample sample = new HGDBCreateSample();
+		// sample.beforeClass();
+		// sample.queryIndexed();
+		// sample.queryLinks();
+		// sample.afterClass();
 	}
 
 	@BeforeBenchClass
 	public void beforeClass() {
 		String databaseLocation = "/tmp/bla";
-//		recursiveDelete(new File(databaseLocation));
+		// recursiveDelete(new File(databaseLocation));
 		graph = new HyperGraph(databaseLocation);
-//		fillAndIndex(graph, 10000);
-//		addEdges(graph, 1000);
+		// fillAndIndex(graph, 10000);
+		// addEdges(graph, 1000);
 	}
 
 	@AfterBenchClass
@@ -63,16 +67,21 @@ public class HGDBCreateSample {
 
 	@Bench
 	public void queryIndexed() {
-		List<HGHandle> nodes = hg.findAll(graph,
-				hg.and(hg.type(Node.class), hg.eq("key", 1l)));
+		nodes.clear();
+		nodes = hg
+				.findAll(graph, hg.and(hg.type(Node.class), hg.eq("key", 1l)));
 		// List nodes = hg.getAll(graph, hg.type(Node.class));
 		// for (Object n : nodes) {
 		// // System.out.println(n);
 		// }
 	}
 
-	@Bench
+	@Bench(beforeFirstRun = "queryIndexed")
 	public void queryLinks() {
+		for (int i = 0; i < nodes.size(); i++) {
+			List<Object> edges = hg.getAll(graph, hg.incident(nodes.get(i)));
+			// System.out.println(edges);
+		}
 
 	}
 
@@ -102,9 +111,18 @@ public class HGDBCreateSample {
 			for (int j = 0; j < tails.length; j++) {
 				tails[j] = nodes.get(ran.nextInt(nodes.size()));
 			}
-			final HGBergeLink link = new HGBergeLink(heads, tails);
+			// final HGLink link = new HGBergeLink(heads, tails);
+			final HGLink link = new HGPlainLink(heads);
 			graph.add(link);
 		}
+
+		List<HGHandle> node2 = hg.findAll(graph,
+				hg.and(hg.type(Node.class), hg.eq("key", 1l)));
+		for (int i = 0; i < node2.size(); i++) {
+			HGLink link = new HGPlainLink(node2.get(i));
+			graph.add(link);
+		}
+
 	}
 
 	/**

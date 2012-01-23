@@ -15,27 +15,19 @@ import org.versacloud.model.Node;
  */
 public final class HGHandler {
 
-    /** Instance of DB. */
-    private final HyperGraph mDB;
+	/** Instance of DB. */
+	private final HyperGraph mDB;
 
-    public HGHandler(final HyperGraph paramDB) {
-        mDB = paramDB;
-    }
+	public HGHandler(final HyperGraph paramDB) {
+		mDB = paramDB;
+	}
 
-    public void addNewNode(final Node paramNode, final long paramKeysToLink) {
+	public void addGroup(final Node paramNode, final long paramKeysToLink) {
 
-    }
+	}
 
-    public void removeNode(final Node paramNode) {
-        
-    }
-    
-    public void insertRight(final Node paramFrom, final Node paramTo) {
-        
-    }
-    
-    public void removeRight(final Node paramFrom, final Node paramTo) {
-        
-    }
-    
+	public void addRight(final Node paramFrom, final Node paramTo) {
+
+	}
+
 }

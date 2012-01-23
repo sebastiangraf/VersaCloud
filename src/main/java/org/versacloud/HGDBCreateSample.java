@@ -10,9 +10,11 @@ import java.util.Random;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.atom.HGBergeLink;
 import org.hypergraphdb.indexing.ByPartIndexer;
 import org.perfidix.AbstractConfig;
 import org.perfidix.Benchmark;
+import org.perfidix.annotation.AfterBenchClass;
 import org.perfidix.annotation.BeforeBenchClass;
 import org.perfidix.annotation.Bench;
 import org.perfidix.element.KindOfArrangement;
@@ -26,107 +28,130 @@ import org.versacloud.model.Node;
 
 public class HGDBCreateSample {
 
-    HyperGraph graph;
+	HyperGraph graph;
 
-    @BeforeBenchClass
-    public void beforeClass() {
-        String databaseLocation = "/tmp/bla";
-        recursiveDelete(new File(databaseLocation));
-        graph = new HyperGraph(databaseLocation);
-        fillAndIndex(graph, 100);
-    }
+	static Random ran = new Random();
 
-    public static void main(String[] args) {
+	public static void main(String[] args) {
 
-        final Benchmark bench = new Benchmark(new Config());
-        bench.add(HGDBCreateSample.class);
+		// Benchmark
+		// final Benchmark bench = new Benchmark(new Config());
+		// bench.add(HGDBCreateSample.class);
+		//
+		// final BenchmarkResult res = bench.run();
+		// new TabularSummaryOutput().visitBenchmark(res);
 
-        final BenchmarkResult res = bench.run();
-        new TabularSummaryOutput().visitBenchmark(res);
+		HGDBCreateSample sample = new HGDBCreateSample();
+		sample.beforeClass();
+		// sample.queryLinks();
+		sample.afterClass();
+	}
 
-        // handles(childNode, graph, handle1, handle2);
+	@BeforeBenchClass
+	public void beforeClass() {
+		String databaseLocation = "/tmp/bla";
+//		recursiveDelete(new File(databaseLocation));
+		graph = new HyperGraph(databaseLocation);
+		fillAndIndex(graph, 10000);
+	}
 
-        // HGBergeLink link = new HGBergeLink(handle1, handle2);
-        // graph.add(link);
+	@AfterBenchClass
+	public void afterClass() {
+		graph.close();
+	}
 
-    }
+	@Bench
+	public void queryIndexed() {
+		List<HGHandle> nodes = hg.getAll(graph,
+				hg.and(hg.type(Node.class), hg.eq("key", 1l)));
+		// List nodes = hg.getAll(graph, hg.type(Node.class));
+		// for (Object n : nodes) {
+		// // System.out.println(n);
+		// }
+	}
 
-    @Bench
-    public void queryIndexed() {
-        /* List nodes = */hg.getAll(graph,
-                hg.and(hg.type(Node.class), hg.eq("key", 1l)));
-        // List nodes = hg.getAll(graph, hg.type(Node.class));
-        // for (Object n : nodes) {
-        // // System.out.println(n);
-        // }
-    }
+	// @Bench
+	public void queryLinks() {
+		addEdges(graph, 1000);
+	}
 
-    private static void handles(final Node node, final HyperGraph graph,
-            final HGHandle handle1, final HGHandle handle2) {
-        Object obj = graph.getHandle(node);
+	private static void fillAndIndex(final HyperGraph graph, final int elements) {
+		String name = "root";
+		byte[] secret = new byte[100];
+		for (int i = 0; i < elements; i++) {
+			ran.nextBytes(secret);
+			// Inserting node
+			Node node = new Node(name + i, i, secret);
+			graph.add(node);
+		}
+//		HGHandle handle = graph.getTypeSystem().getTypeHandle(Node.class);
+//		graph.getIndexManager().register(new ByPartIndexer(handle, "key"));
+	}
 
-        // Updating operation
-        node.setKey(54);
-        graph.update(node);
-        // removing of a handle and setting the node to annother handle
-        graph.remove(handle1);
-        graph.replace(handle2, node);
+	private static void addEdges(final HyperGraph graph, final int edges) {
+		List<HGHandle> nodes = hg.findAll(graph, hg.type(Node.class));
+		for (int i = 0; i < edges; i++) {
 
-        // see if reset works
-        obj = graph.getHandle(node);
+			final HGHandle[] heads = new HGHandle[ran.nextInt(10)];
+			final HGHandle[] tails = new HGHandle[ran.nextInt(10)];
+			for (int j = 0; j < heads.length; j++) {
+				heads[j] = nodes.get(ran.nextInt(nodes.size()));
+			}
+			for (int j = 0; j < tails.length; j++) {
+				tails[j] = nodes.get(ran.nextInt(nodes.size()));
+			}
+			final HGBergeLink link = new HGBergeLink(heads, tails);
+			graph.add(link);
+		}
+	}
 
-        // getting object
-        obj = graph.get(handle2);
-        System.out.println(obj);
-    }
+	/**
+	 * Deleting a storage recursive. Used for deleting a databases
+	 * 
+	 * @param paramFile
+	 *            which should be deleted included descendants
+	 * @return true if delete is valid
+	 */
+	private static boolean recursiveDelete(final File paramFile) {
+		if (paramFile.isDirectory()) {
+			for (final File child : paramFile.listFiles()) {
+				if (!recursiveDelete(child)) {
+					return false;
+				}
+			}
+		}
+		return paramFile.delete();
+	}
 
-    private static void fillAndIndex(final HyperGraph graph, final int elements) {
-        String name = "root";
-        Random ran = new Random(elements);
-        byte[] secret = new byte[100];
+	final static int RUNS = 10;
+	final static AbstractMeter[] METERS = { new TimeMeter(Time.MilliSeconds) };
+	final static AbstractOutput[] OUTPUT = {};
+	final static KindOfArrangement ARRAN = KindOfArrangement.SequentialMethodArrangement;
+	final static double GCPROB = 1.0d;
 
-        for (int i = 0; i < elements; i++) {
-            ran.nextBytes(secret);
-            // Inserting node
-            Node node = new Node(name + i, i, secret);
-            graph.add(node);
-        }
+	static class Config extends AbstractConfig {
 
-        HGHandle handle = graph.getTypeSystem().getTypeHandle(Node.class);
-        graph.getIndexManager().register(new ByPartIndexer(handle, "key"));
+		public Config() {
+			super(RUNS, METERS, OUTPUT, ARRAN, GCPROB);
+		}
 
-    }
-
-    /**
-     * Deleting a storage recursive. Used for deleting a databases
-     * 
-     * @param paramFile
-     *            which should be deleted included descendants
-     * @return true if delete is valid
-     */
-    private static boolean recursiveDelete(final File paramFile) {
-        if (paramFile.isDirectory()) {
-            for (final File child : paramFile.listFiles()) {
-                if (!recursiveDelete(child)) {
-                    return false;
-                }
-            }
-        }
-        return paramFile.delete();
-    }
-
-    final static int RUNS = 10;
-    final static AbstractMeter[] METERS = { new TimeMeter(Time.MilliSeconds) };
-    final static AbstractOutput[] OUTPUT = {};
-    final static KindOfArrangement ARRAN = KindOfArrangement.SequentialMethodArrangement;
-    final static double GCPROB = 1.0d;
-
-    static class Config extends AbstractConfig {
-
-        public Config() {
-            super(RUNS, METERS, OUTPUT, ARRAN, GCPROB);
-        }
-
-    }
-
+	}
+	// private static void handles(final Node node, final HyperGraph graph,
+	// final HGHandle handle1, final HGHandle handle2) {
+	// Object obj = graph.getHandle(node);
+	//
+	// // Updating operation
+	// node.setKey(54);
+	// graph.update(node);
+	// // removing of a handle and setting the node to annother handle
+	// graph.remove(handle1);
+	// graph.replace(handle2, node);
+	//
+	// // see if reset works
+	// obj = graph.getHandle(node);
+	//
+	// // getting object
+	// obj = graph.get(handle2);
+	// System.out.println(obj);
+	// }
 }

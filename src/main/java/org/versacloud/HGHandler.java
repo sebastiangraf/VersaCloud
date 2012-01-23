@@ -23,7 +23,15 @@ public final class HGHandler {
 	}
 
 	public void addGroup(final Node paramNode, final long paramKeysToLink) {
-
+	    
+	    //Inserting node
+	    mDB.add(paramNode);
+	    
+	    //Inserting edge
+	    //1. find the necessary nodes
+	    
+	    
+	    
 	}
 
 	public void addRight(final Node paramFrom, final Node paramTo) {

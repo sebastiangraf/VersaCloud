@@ -15,7 +15,12 @@ public class Node {
     /**
      * Secret key using for data en-/decryption.
      */
-    private byte[] secretKey;
+    private byte[] secret;
+
+    /**
+     * Version of the node.
+     */
+    private long version;
 
     /**
      * Standard constructor.
@@ -29,10 +34,12 @@ public class Node {
      * @param paramName
      *            node name.
      */
-    public Node(final String paramName, final long paramKey, byte[] mSecretKey) {
+    public Node(final String paramName, final long paramKey,
+            final long paramVersion, byte[] paramSecret) {
         this.key = paramKey;
         this.name = paramName;
-        this.secretKey = mSecretKey;
+        this.secret = paramSecret;
+        this.version = paramVersion;
     }
 
     /**
@@ -59,7 +66,7 @@ public class Node {
      * @return secret key.
      */
     public final byte[] getSecretKey() {
-        return secretKey;
+        return secret;
     }
 
     /**
@@ -68,14 +75,44 @@ public class Node {
      * @return secret key.
      */
     public final void setSecretKey(final byte[] mSecretKey) {
-        this.secretKey = mSecretKey;
+        this.secret = mSecretKey;
     }
 
+    /**
+     * Return the key
+     * 
+     * @return the key
+     */
     public long getKey() {
         return key;
     }
 
+    /**
+     * Sets the key
+     * 
+     * @param mKey
+     *            the key
+     */
     public void setKey(long mKey) {
         this.key = mKey;
+    }
+
+    /**
+     * Returns the version
+     * 
+     * @return the version
+     */
+    public long getVersion() {
+        return this.version;
+    }
+
+    /**
+     * Sets the version
+     * 
+     * @param pVersion
+     *            tp be set
+     */
+    public void setVersion(final long pVersion) {
+        version = pVersion;
     }
 }

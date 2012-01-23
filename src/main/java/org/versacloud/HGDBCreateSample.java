@@ -92,7 +92,7 @@ public class HGDBCreateSample {
         for (int i = 0; i < elements; i++) {
             ran.nextBytes(secret);
             // Inserting node
-            Node node = new Node(name + i, i, secret);
+            Node node = new Node(name + i, i, 0, secret);
             graph.add(node);
         }
         HGHandle handle = graph.getTypeSystem().getTypeHandle(Node.class);

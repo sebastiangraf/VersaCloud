@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Random;
 
 import org.hypergraphdb.HGHandle;
-import org.hypergraphdb.HGLink;
-import org.hypergraphdb.HGPlainLink;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.atom.HGBergeLink;
@@ -39,17 +37,17 @@ public class HGDBCreateSample {
     public static void main(String[] args) {
 
         // Benchmark
-        // final Benchmark bench = new Benchmark(new Config());
-        // bench.add(HGDBCreateSample.class);
-        //
-        // final BenchmarkResult res = bench.run();
-        // new TabularSummaryOutput().visitBenchmark(res);
+         final Benchmark bench = new Benchmark(new Config());
+         bench.add(HGDBCreateSample.class);
+        
+         final BenchmarkResult res = bench.run();
+         new TabularSummaryOutput().visitBenchmark(res);
 
-        HGDBCreateSample sample = new HGDBCreateSample();
-        sample.beforeClass();
-        sample.queryIndexed();
-        sample.queryLinks();
-        sample.afterClass();
+//        HGDBCreateSample sample = new HGDBCreateSample();
+//        sample.beforeClass();
+//        sample.queryIndexed();
+//        sample.queryLinks();
+//        sample.afterClass();
     }
 
     @BeforeBenchClass

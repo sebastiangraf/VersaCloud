@@ -3,7 +3,13 @@
  */
 package org.versacloud;
 
+import java.util.List;
+import java.util.Set;
+
+import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.atom.HGBergeLink;
 import org.versacloud.model.Node;
 
 /**
@@ -15,27 +21,53 @@ import org.versacloud.model.Node;
  */
 public final class HGHandler {
 
-	/** Instance of DB. */
-	private final HyperGraph mDB;
+    /** Instance of DB. */
+    private final HyperGraph mDB;
 
-	public HGHandler(final HyperGraph paramDB) {
-		mDB = paramDB;
-	}
+    public HGHandler(final HyperGraph paramDB) {
+        mDB = paramDB;
+    }
 
-	public void addGroup(final Node paramNode, final long paramKeysToLink) {
-	    
-	    //Inserting node
-	    mDB.add(paramNode);
-	    
-	    //Inserting edge
-	    //1. find the necessary nodes
-	    
-	    
-	    
-	}
+    public HGHandle addRight(final Node paramNode) {
+        // Inserting node
+        return mDB.add(paramNode);
+    }
 
-	public void addRight(final Node paramFrom, final Node paramTo) {
+    /**
+     * The given method activates a right binding the denoted parents with the denoted children. An existing
+     * right covering the fitting children set is removed to tail down the database.
+     * 
+     * @param parents
+     *            the clients gaining the right
+     * @param children
+     *            the groups, providing the right
+     */
+    public void activateRight(final Set<HGHandle> parents, final Set<HGHandle> children) {
 
-	}
+        // Get a possible hyperedge containing all children, the size must be one since there should be only
+        // one edge representing one granted right
+        List<HGHandle> handles = hg.findAll(mDB, hg.link(children));
+        HGBergeLink link;
+        if (handles.size() > 1) {
+            throw new IllegalStateException(
+                "The invariant to represent each granted right with one edge was violated!");
+        } // an existing granted right was localized -> check the parents and adapt
+        else if (handles.size() == 1) {
 
+            link = (HGBergeLink)mDB.get(handles.get(0));
+            // right is already activated -> just exit since right is already granted
+            if (link.getTail().containsAll(parents)) {
+                return;
+            } // right is existing, adapt right by inserting the new parents
+            else {
+                link.getTail().addAll(parents);
+                mDB.replace(handles.get(0), link);
+            }
+        } else {
+            link =
+                new HGBergeLink(children.toArray(new HGHandle[children.size()]), parents
+                    .toArray(new HGHandle[parents.size()]));
+            mDB.add(link);
+        }
+    }
 }

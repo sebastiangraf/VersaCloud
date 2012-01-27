@@ -69,5 +69,50 @@ public final class HGHandler {
                     .toArray(new HGHandle[parents.size()]));
             mDB.add(link);
         }
+        adaptDescendants();
     }
+
+    /**
+     * The given method activates a right binding the denoted parents with the denoted children. An existing
+     * right covering the fitting children set is removed to tail down the database.
+     * 
+     * @param parents
+     *            the clients gaining the right
+     * @param children
+     *            the groups, providing the right
+     */
+    public void deactivateRight(final Set<HGHandle> parents, final Set<HGHandle> children) {
+
+        // Get a possible hyperedge containing all children, the size must be one since there should be only
+        // one edge representing one granted right
+        List<HGHandle> handles = hg.findAll(mDB, hg.link(children));
+        HGBergeLink link;
+        if (handles.size() > 1) {
+            throw new IllegalStateException(
+                "The invariant to represent each granted right with one edge was violated!");
+        } // an existing granted right was localized -> check the parents and adapt
+        else if (handles.size() == 1) {
+
+            link = (HGBergeLink)mDB.get(handles.get(0));
+            // right is already activated -> remove all parents, part by part
+            for (HGHandle handle : parents) {
+                link.getTail().remove(handle);
+            }
+            // if tail is empty, remove the entire link, otherwise adapt existing link
+            if (link.getTail().size() > 0) {
+                mDB.replace(handles.get(0), link);
+            } else {
+                mDB.remove(handles.get(0));
+            }
+            adaptDescendants();
+        } else {
+            return;
+        }
+
+    }
+
+    private void adaptDescendants() {
+
+    }
+
 }

@@ -37,17 +37,17 @@ public class HGDBCreateSample {
     public static void main(String[] args) {
 
         // Benchmark
-         final Benchmark bench = new Benchmark(new Config());
-         bench.add(HGDBCreateSample.class);
-        
-         final BenchmarkResult res = bench.run();
-         new TabularSummaryOutput().visitBenchmark(res);
+        final Benchmark bench = new Benchmark(new Config());
+        bench.add(HGDBCreateSample.class);
 
-//        HGDBCreateSample sample = new HGDBCreateSample();
-//        sample.beforeClass();
-//        sample.queryIndexed();
-//        sample.queryLinks();
-//        sample.afterClass();
+        final BenchmarkResult res = bench.run();
+        new TabularSummaryOutput().visitBenchmark(res);
+
+        // HGDBCreateSample sample = new HGDBCreateSample();
+        // sample.beforeClass();
+        // sample.queryIndexed();
+        // sample.queryLinks();
+        // sample.afterClass();
     }
 
     @BeforeBenchClass
@@ -84,6 +84,7 @@ public class HGDBCreateSample {
 
     }
 
+    @Deprecated
     private static void fillAndIndex(final HyperGraph graph, final int elements) {
         String name = "root";
         byte[] secret = new byte[100];
@@ -98,6 +99,7 @@ public class HGDBCreateSample {
         graph.runMaintenance();
     }
 
+    @Deprecated
     private static void addEdges(final HyperGraph graph, final int edges) {
         List<HGHandle> nodes = hg.findAll(graph, hg.type(Node.class));
         for (int i = 0; i < edges; i++) {
@@ -127,6 +129,7 @@ public class HGDBCreateSample {
      *            which should be deleted included descendants
      * @return true if delete is valid
      */
+    @Deprecated
     private static boolean recursiveDelete(final File paramFile) {
         if (paramFile.isDirectory()) {
             for (final File child : paramFile.listFiles()) {

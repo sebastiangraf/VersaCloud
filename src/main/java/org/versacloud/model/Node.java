@@ -1,5 +1,7 @@
 package org.versacloud.model;
 
+import java.util.Arrays;
+
 public class Node {
 
     /**
@@ -114,5 +116,45 @@ public class Node {
      */
     public void setVersion(final long pVersion) {
         version = pVersion;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (int) (key ^ (key >>> 32));
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + Arrays.hashCode(secret);
+        result = prime * result + (int) (version ^ (version >>> 32));
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Node other = (Node) obj;
+        if (key != other.key)
+            return false;
+        if (name == null) {
+            if (other.name != null)
+                return false;
+        } else if (!name.equals(other.name))
+            return false;
+        if (!Arrays.equals(secret, other.secret))
+            return false;
+        if (version != other.version)
+            return false;
+        return true;
     }
 }

@@ -157,4 +157,13 @@ public class Node {
             return false;
         return true;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        return "Node [name=" + name + ", key=" + key + ", secret=" + Arrays.toString(secret) + ", version="
+            + version + "]";
+    }
 }

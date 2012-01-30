@@ -206,7 +206,7 @@ public final class HGHandler implements IRightHandler {
                     .size()]), parents.toArray(new HGHandle[parents.size()]));
             getHGDB().add(link);
         }
-        adaptDescendants(children);
+//        adaptDescendants(children);
     }
 
     /**
@@ -248,7 +248,7 @@ public final class HGHandler implements IRightHandler {
             } else {
                 getHGDB().remove(handles.get(0));
             }
-            adaptDescendants(children);
+//            adaptDescendants(children);
         } else {
             return;
         }
@@ -263,8 +263,8 @@ public final class HGHandler implements IRightHandler {
                 Pair<HGHandle, HGHandle> current = traversal.next();
                 HGBergeLink l = (HGBergeLink) getHGDB().get(current.getFirst());
                 Object atom = getHGDB().get(current.getSecond());
-                System.out.println("Visiting atom " + atom + " pointed to by "
-                        + l);
+//                System.out.println("Visiting atom " + atom + " pointed to by "
+//                        + l);
             }
         }
 

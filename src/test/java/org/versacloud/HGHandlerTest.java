@@ -3,17 +3,20 @@
  */
 package org.versacloud;
 
-import static org.versacloud.HGTestUtil.recursiveDelete;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.versacloud.HGTestUtil.addNodes;
+import static org.versacloud.HGTestUtil.recursiveDelete;
+import static org.versacloud.HGTestUtil.addEdges;
+
 import java.io.File;
-import java.util.HashSet;
 import java.util.Set;
 
-import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.atom.HGBergeLink;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.versacloud.model.Node;
 
@@ -48,75 +51,59 @@ public class HGHandlerTest {
     }
 
     /**
-     * Test method for
-     * {@link org.versacloud.HGHandler#addRight(org.versacloud.model.Node)}.
+     * Test method for {@link org.versacloud.HGHandler#addRight(org.versacloud.model.Node)}.
      */
     @Test
     public void testAddNode() {
-        int elements = 100;
+        int elements = 1000;
         // Getting check structure
-        final Set<Node> nodes = new HashSet<Node>();
-        final Set<HGHandle> handles = new HashSet<HGHandle>();
-
-        // Filling the test structure including the graph
-        for (int i = 0; i < elements; i++) {
-            // Getting one node
-            final Node node = HGTestUtil.generateNode();
-            // adding node to test structure and set including the resulting
-            // handles to another set
-            nodes.add(node);
-            handles.add(handler.addRight(node));
-        }
-
-        assertEquals(nodes.size(), handles.size());
+        final Set<Node> nodes = addNodes(elements, handler);
 
         for (Node node : nodes) {
             final long key = node.getKey();
             final long version = node.getVersion();
-            final HGHandle handle = handler.getRightHandle(key, version);
-            if (!handles.contains(handle)) {
-                fail();
-            }
             final Node checkNode = handler.getRight(key, version);
             if (!nodes.contains(checkNode)) {
                 fail();
             }
-
         }
+    }
+
+    /**
+     * Test method for {@link org.versacloud.HGHandler#activateRight(java.util.Set, java.util.Set)} .
+     */
+    @Test
+    public void testActivateRight() {
+
+        int elementNumber = 1000;
+        int edgeNumber = 1000;
+        // Getting check structure
+        final Set<Node> nodes = addNodes(elementNumber, handler);
+        final Set<HGBergeLink> edges = addEdges(elementNumber, handler, nodes);
 
     }
 
     /**
-     * Test method for
-     * {@link org.versacloud.HGHandler#removeRight(org.versacloud.model.Node)}.
+     * Test method for {@link org.versacloud.HGHandler#removeRight(org.versacloud.model.Node)}.
      */
     @Test
+    @Ignore
     public void testRemoveRight() {
     }
 
     /**
-     * Test method for
-     * {@link org.versacloud.HGHandler#activateRight(java.util.Set, java.util.Set)}
-     * .
+     * Test method for {@link org.versacloud.HGHandler#deactivateRight(java.util.Set, java.util.Set)} .
      */
     @Test
-    public void testActivateRight() {
-    }
-
-    /**
-     * Test method for
-     * {@link org.versacloud.HGHandler#deactivateRight(java.util.Set, java.util.Set)}
-     * .
-     */
-    @Test
+    @Ignore
     public void testDeactivateRight() {
     }
 
     /**
-     * Test method for
-     * {@link org.versacloud.HGHandler#adaptDescendants(java.util.Set)}.
+     * Test method for {@link org.versacloud.HGHandler#adaptDescendants(java.util.Set)}.
      */
     @Test
+    @Ignore
     public void testAdaptDescendants() {
     }
 

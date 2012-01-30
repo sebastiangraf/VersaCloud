@@ -50,11 +50,9 @@ public class HGTestUtil {
      * 
      * @param elements
      *            to get nodes
-     * @param handler
-     *            to insert the nodes
      * @return a set of nodes
      */
-    public static Set<Node> addNodes(final int elements, final HGHandler handler) {
+    public static Set<Node> addNodes(final int elements) {
         final Set<Node> nodes = new HashSet<Node>();
         // Filling the test structure including the graph
         for (int i = 0; i < elements; i++) {
@@ -63,7 +61,6 @@ public class HGTestUtil {
             // adding node to test structure and set including the resulting
             // handles to another set
             nodes.add(node);
-            handler.addRight(node);
         }
         assertEquals(nodes.size(), elements);
         return nodes;
@@ -86,10 +83,26 @@ public class HGTestUtil {
             // Getting one node
             final HGBergeLink edge = HGTestUtil.generateEdge(nodes, handler.getHGDB());
             // adding node to test structure and set including the resulting
-            // handles to another set
-            edges.add(edge);
+            // handles to another set, it is tested that no two links have the same set of children
+            if (edges.size() == 0) {
+                edges.add(edge);
+            } else {
+                // Check against already generated edges if the head (=child elements) are the same.
+                boolean doubleFound = false;
+                for (HGBergeLink link : edges.toArray(new HGBergeLink[edges.size()])) {
+                    if (link.getHead().equals(edge.getHead())) {
+                        doubleFound = true;
+                        break;
+                    }
+                }
+                if (doubleFound) {
+                    i--;
+                } else {
+                    edges.add(edge);
+                }
+            }
         }
-        assertEquals(edges.size(), elements);
+        assertEquals(elements, edges.size());
         return edges;
     }
 
@@ -103,24 +116,25 @@ public class HGTestUtil {
      * @return one {@link HGBergeLink}
      */
     private static HGBergeLink generateEdge(final Set<Node> paramNodes, final HyperGraph graph) {
-
+        // Transforming everything to a list
         List<Node> nodes = new ArrayList<Node>();
         nodes.addAll(paramNodes);
-
+        // getting the number of parents, and children
         final int parentNumber = ran.nextInt(nodes.size());
         final int childrenNumber = ran.nextInt(nodes.size());
-
+        // sets of parents and children
         Set<HGHandle> parents = new HashSet<HGHandle>();
         Set<HGHandle> children = new HashSet<HGHandle>();
-
+        // getting the parents
         for (int i = 0; i < parentNumber; i++) {
             parents.add(graph.getHandle(nodes.get(ran.nextInt(nodes.size()))));
         }
-
+        // getting the children
         for (int i = 0; i < childrenNumber; i++) {
             children.add(graph.getHandle(nodes.get(ran.nextInt(nodes.size()))));
-        }
 
+        }
+        // generating a link covering the denoted children and parents
         return new HGBergeLink(children.toArray(new HGHandle[children.size()]), parents
             .toArray(new HGHandle[parents.size()]));
     }

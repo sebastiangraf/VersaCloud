@@ -57,7 +57,9 @@ public class HGHandlerTest {
     public void testAddNode() {
         int elements = 1000;
         // Getting check structure
-        final Set<Node> nodes = addNodes(elements, handler);
+        final Set<Node> nodes = addNodes(elements);
+        // inserting data
+        handler.addRight(nodes.toArray(new Node[nodes.size()]));
 
         for (Node node : nodes) {
             final long key = node.getKey();
@@ -76,11 +78,15 @@ public class HGHandlerTest {
     public void testActivateRight() {
 
         int elementNumber = 1000;
-        int edgeNumber = 1000;
+        int edgeNumber = 500;
         // Getting check structure
-        final Set<Node> nodes = addNodes(elementNumber, handler);
-        final Set<HGBergeLink> edges = addEdges(elementNumber, handler, nodes);
-
+        final Set<Node> nodes = addNodes(elementNumber);
+        handler.addRight(nodes.toArray(new Node[nodes.size()]));
+        final Set<HGBergeLink> edges = addEdges(edgeNumber, handler, nodes);
+        // inserting data
+        for (HGBergeLink link : edges) {
+            handler.activateRight(link.getTail(), link.getHead());
+        }
     }
 
     /**

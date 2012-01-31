@@ -120,8 +120,8 @@ public class HGTestUtil {
         List<Node> nodes = new ArrayList<Node>();
         nodes.addAll(paramNodes);
         // getting the number of parents, and children
-        final int parentNumber = ran.nextInt(nodes.size());
-        final int childrenNumber = ran.nextInt(nodes.size());
+        final int parentNumber = ran.nextInt(10);
+        final int childrenNumber = ran.nextInt(10);
         // sets of parents and children
         Set<HGHandle> parents = new HashSet<HGHandle>();
         Set<HGHandle> children = new HashSet<HGHandle>();

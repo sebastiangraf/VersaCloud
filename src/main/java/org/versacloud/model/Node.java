@@ -163,7 +163,6 @@ public class Node {
      */
     @Override
     public String toString() {
-        return "Node [name=" + name + ", key=" + key + ", secret=" + Arrays.toString(secret) + ", version="
-            + version + "]";
+        return "Node [key=" + key + ", version="+ version + "]";
     }
 }

@@ -5,7 +5,6 @@ package org.versacloud;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
@@ -70,7 +69,7 @@ public final class HGHandler implements IRightHandler {
             i++;
             LOGGER.debug("Adding at index " + i + " from " + paramNodes.length + " node " + node);
         }
-        // mDB.runMaintenance();
+        mDB.runMaintenance();
         return handles;
     }
 
@@ -132,6 +131,7 @@ public final class HGHandler implements IRightHandler {
     /**
      * {@inheritDoc}
      */
+    @Override
     public byte[] getRightMaterial(final long key, final long version) {
         final Node node = getRight(key, version);
         return node.getSecretKey();
@@ -189,15 +189,17 @@ public final class HGHandler implements IRightHandler {
      *            the groups, providing the right
      */
     public void activateRight(final Set<HGHandle> parents, final Set<HGHandle> children) {
-
+        LOGGER.debug("Activate link for parents " + parents + " and children " + children);
         // Get a possible hyperedge containing all children, the size must be
         // one since there should be only
         // one edge representing one granted right
         List<HGHandle> handles;
         try {
             handles = hg.findAll(getHGDB(), hg.link(children));
-        } catch (final NoSuchElementException exc) {
+            LOGGER.debug("Found handles " + handles);
+        } catch (final RuntimeException exc) {
             handles = new ArrayList<HGHandle>();
+            LOGGER.debug("Found no handles");
         }
 
         // Searching for an existing right, denoted by a entirely equal set of children
@@ -219,9 +221,11 @@ public final class HGHandler implements IRightHandler {
             // right is already activated -> just exit since right is already
             // granted
             if (link.getTail().containsAll(parents)) {
+                LOGGER.debug("no update necessary");
                 return;
             } // right is existing, adapt right by inserting the new parents
             else {
+                LOGGER.debug("update necessary: replaced handle " + handle);
                 link.getTail().addAll(parents);
                 getHGDB().replace(handle, link);
             }
@@ -230,6 +234,7 @@ public final class HGHandler implements IRightHandler {
                 new HGBergeLink(children.toArray(new HGHandle[children.size()]), parents
                     .toArray(new HGHandle[parents.size()]));
             getHGDB().add(link);
+            LOGGER.debug("update necessary: inserted handle " + link);
         }
 
         // adaptDescendants(children);

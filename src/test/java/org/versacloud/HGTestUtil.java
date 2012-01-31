@@ -84,23 +84,23 @@ public class HGTestUtil {
             final HGBergeLink edge = HGTestUtil.generateEdge(nodes, handler.getHGDB());
             // adding node to test structure and set including the resulting
             // handles to another set, it is tested that no two links have the same set of children
-//            if (edges.size() == 0) {
+            if (edges.size() == 0) {
                 edges.add(edge);
-//            } else {
-//                // Check against already generated edges if the head (=child elements) are the same.
-//                boolean doubleFound = false;
-//                for (HGBergeLink link : edges.toArray(new HGBergeLink[edges.size()])) {
-//                    if (link.getHead().equals(edge.getHead())) {
-//                        doubleFound = true;
-//                        break;
-//                    }
-//                }
-//                if (doubleFound) {
-//                    i--;
-//                } else {
-//                    edges.add(edge);
-//                }
-//            }
+            } else {
+                // Check against already generated edges if the head (=child elements) are the same.
+                boolean doubleFound = false;
+                for (HGBergeLink link : edges.toArray(new HGBergeLink[edges.size()])) {
+                    if (link.getHead().equals(edge.getHead())) {
+                        doubleFound = true;
+                        break;
+                    }
+                }
+                if (doubleFound) {
+                    i--;
+                } else {
+                    edges.add(edge);
+                }
+            }
         }
         assertEquals(elements, edges.size());
         return edges;
@@ -153,6 +153,15 @@ public class HGTestUtil {
         ran.nextBytes(secret);
         // Inserting node
         return new Node(name, ran.nextInt(), ran.nextInt(), secret);
+    }
+
+    public static void checkLinks(final Set<Node> nodes, final HGHandler handler) {
+        for (Node node : nodes) {
+            final HGHandle handle = handler.getRightHandle(node.getKey(), node.getVersion());
+            HGHandle[] descendants = handler.getDescendants(handle);
+            System.out.println(descendants);
+        }
+
     }
 
 }

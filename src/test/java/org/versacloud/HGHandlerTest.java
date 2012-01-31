@@ -5,11 +5,12 @@ package org.versacloud;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.versacloud.HGTestUtil.addEdges;
 import static org.versacloud.HGTestUtil.addNodes;
+import static org.versacloud.HGTestUtil.checkLinks;
 import static org.versacloud.HGTestUtil.recursiveDelete;
 
 import java.io.File;
@@ -112,7 +113,7 @@ public class HGHandlerTest {
      * Test method for {@link org.versacloud.HGHandler#activateRight(java.util.Set, java.util.Set)} .
      */
     @Test
-    public void testActivateRight() {
+    public void testActivateRightCorrectly() {
 
         int elementNumber = 5000;
         int edgeNumber = 1000;
@@ -125,6 +126,9 @@ public class HGHandlerTest {
         for (HGBergeLink link : edges) {
             handler.activateRight(link.getTail(), link.getHead());
         }
+
+        checkLinks(nodes, handler);
+
     }
 
     /**

@@ -10,6 +10,7 @@ import java.util.Set;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
+import org.hypergraphdb.algorithms.DefaultALGenerator;
 import org.hypergraphdb.algorithms.HGDepthFirstTraversal;
 import org.hypergraphdb.algorithms.SimpleALGenerator;
 import org.hypergraphdb.atom.HGBergeLink;
@@ -285,10 +286,25 @@ public final class HGHandler implements IRightHandler {
 
     }
 
+    public HGHandle[] getDescendants(final HGHandle handle) {
+        HGDepthFirstTraversal traversal = new HGDepthFirstTraversal(handle, new SimpleALGenerator(getHGDB()));
+        final List<HGHandle> returnval = new ArrayList<HGHandle>();
+
+        while (traversal.hasNext()) {
+            Pair<HGHandle, HGHandle> current = traversal.next();
+            HGBergeLink l = (HGBergeLink)getHGDB().get(current.getFirst());
+            Object atom = getHGDB().get(current.getSecond());
+            returnval.add(current.getSecond());
+            System.out.println("Visiting atom " + atom + " pointed to by " + l);
+        }
+        return returnval.toArray(new HGHandle[returnval.size()]);
+
+    }
+
     public void adaptDescendants(final Set<HGHandle> handles) {
         for (HGHandle handle : handles) {
             HGDepthFirstTraversal traversal =
-                new HGDepthFirstTraversal(handle, new SimpleALGenerator(getHGDB()));
+                new HGDepthFirstTraversal(handle, new DefaultALGenerator(getHGDB()));
             while (traversal.hasNext()) {
                 Pair<HGHandle, HGHandle> current = traversal.next();
                 HGBergeLink l = (HGBergeLink)getHGDB().get(current.getFirst());

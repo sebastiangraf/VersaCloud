@@ -84,23 +84,23 @@ public class HGTestUtil {
             final HGBergeLink edge = HGTestUtil.generateEdge(nodes, handler.getHGDB());
             // adding node to test structure and set including the resulting
             // handles to another set, it is tested that no two links have the same set of children
-            if (edges.size() == 0) {
+//            if (edges.size() == 0) {
                 edges.add(edge);
-            } else {
-                // Check against already generated edges if the head (=child elements) are the same.
-                boolean doubleFound = false;
-                for (HGBergeLink link : edges.toArray(new HGBergeLink[edges.size()])) {
-                    if (link.getHead().equals(edge.getHead())) {
-                        doubleFound = true;
-                        break;
-                    }
-                }
-                if (doubleFound) {
-                    i--;
-                } else {
-                    edges.add(edge);
-                }
-            }
+//            } else {
+//                // Check against already generated edges if the head (=child elements) are the same.
+//                boolean doubleFound = false;
+//                for (HGBergeLink link : edges.toArray(new HGBergeLink[edges.size()])) {
+//                    if (link.getHead().equals(edge.getHead())) {
+//                        doubleFound = true;
+//                        break;
+//                    }
+//                }
+//                if (doubleFound) {
+//                    i--;
+//                } else {
+//                    edges.add(edge);
+//                }
+//            }
         }
         assertEquals(elements, edges.size());
         return edges;

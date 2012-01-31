@@ -4,7 +4,6 @@
 package org.versacloud;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -19,6 +18,8 @@ import org.hypergraphdb.indexing.ByPartIndexer;
 import org.hypergraphdb.indexing.CompositeIndexer;
 import org.hypergraphdb.indexing.HGKeyIndexer;
 import org.hypergraphdb.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.versacloud.api.IRightHandler;
 import org.versacloud.model.Node;
 
@@ -30,6 +31,8 @@ import org.versacloud.model.Node;
  * 
  */
 public final class HGHandler implements IRightHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HGHandler.class);
 
     /** Instance of DB. */
     private final HyperGraph mDB;
@@ -47,6 +50,7 @@ public final class HGHandler implements IRightHandler {
         indices[0] = new ByPartIndexer(handle, "key");
         indices[1] = new ByPartIndexer(handle, "version");
         mDB.getIndexManager().register(new CompositeIndexer(handle, indices));
+        LOGGER.debug("Initializing with db " + paramDB);
     }
 
     /**
@@ -64,8 +68,9 @@ public final class HGHandler implements IRightHandler {
         for (Node node : paramNodes) {
             handles[i] = getHGDB().add(node);
             i++;
+            LOGGER.debug("Adding at index " + i + " from " + paramNodes.length + " node " + node);
         }
-        mDB.runMaintenance();
+        // mDB.runMaintenance();
         return handles;
     }
 
@@ -89,6 +94,8 @@ public final class HGHandler implements IRightHandler {
         case 0:
             return null;
         case 1:
+            LOGGER
+                .debug("Getting handle " + resultset.get(0) + " for key " + key + " and version " + version);
             return resultset.get(0);
         default:
             throw new IllegalStateException(new StringBuilder("Resultset should only be one but is ").append(
@@ -105,7 +112,9 @@ public final class HGHandler implements IRightHandler {
      * @return the node
      */
     public Node getRight(final HGHandle handle) {
-        return mDB.get(handle);
+        Node node = mDB.get(handle);
+        LOGGER.debug("Getting node" + node);
+        return node;
     }
 
     /**

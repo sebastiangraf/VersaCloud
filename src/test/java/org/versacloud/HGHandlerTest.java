@@ -55,7 +55,7 @@ public class HGHandlerTest {
      */
     @Test
     public void testAddNode() {
-        int elements = 1000;
+        int elements = 10000;
         // Getting check structure
         final Set<Node> nodes = addNodes(elements);
         // inserting data
@@ -77,8 +77,8 @@ public class HGHandlerTest {
     @Test
     public void testActivateRight() {
 
-        int elementNumber = 1000;
-        int edgeNumber = 500;
+        int elementNumber = 5000;
+        int edgeNumber = 100;
         // Getting check structure
         final Set<Node> nodes = addNodes(elementNumber);
         handler.addRight(nodes.toArray(new Node[nodes.size()]));

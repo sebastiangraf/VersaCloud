@@ -8,12 +8,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-import static org.versacloud.HGTestUtil.addEdges;
+import static org.versacloud.HGTestUtil.generateEdgePerLevel;
 import static org.versacloud.HGTestUtil.addNodes;
 import static org.versacloud.HGTestUtil.checkLinks;
 import static org.versacloud.HGTestUtil.recursiveDelete;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
@@ -110,24 +112,33 @@ public class HGHandlerTest {
     }
 
     /**
-     * Test method for {@link org.versacloud.HGHandler#activateRight(java.util.Set, java.util.Set)} .
+     * Testing layer nodes according {@link org.versacloud.HGHandler#addRight(org.versacloud.model.Node)}
      */
     @Test
-    public void testActivateRightCorrectly() {
+    public void testEdges() {
+        // Setting nodes in different layers above each other
+        final int layers = 3;
+        final int nodesPerLayer = 100;
+        final int edgesPerLayer = 50;
+        final int numberOfParents = 3;
+        final int numberOfChildren = 3;
 
-        int elementNumber = 5000;
-        int edgeNumber = 1000;
-        // Getting check structure
-        final Set<Node> nodes = addNodes(elementNumber);
-        handler.addRight(nodes.toArray(new Node[nodes.size()]));
-
-        final Set<HGBergeLink> edges = addEdges(edgeNumber, handler, nodes);
-        // inserting data
-        for (HGBergeLink link : edges) {
-            handler.activateRight(link.getTail(), link.getHead());
+        final List<Set<Node>> nodes = new ArrayList<Set<Node>>(layers);
+        for (int i = 0; i < layers; i++) {
+            nodes.add(addNodes(nodesPerLayer));
+            handler.addRight(nodes.get(i).toArray(new Node[nodes.get(i).size()]));
         }
 
-        checkLinks(nodes, handler);
+        // Adding edges between the layered nodes. For testing purposes, only the nodes on the following
+        // layers are taken as sinks
+        int i = 0;
+        do {
+
+            final Set<HGBergeLink> set =
+                HGTestUtil.generateEdgePerLevel(nodes.get(i), nodes.get(i + 1), numberOfParents,
+                    numberOfChildren, edgesPerLayer, handler.getHGDB());
+            i++;
+        } while (i < layers - 1);
 
     }
 

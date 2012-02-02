@@ -67,76 +67,74 @@ public class HGTestUtil {
     }
 
     /**
-     * Adding a give number of nodes to a graphdb
-     * 
-     * @param elements
-     *            to get nodes
-     * @param handler
-     *            to insert the nodes
-     * @return a set of nodes
-     */
-    public static Set<HGBergeLink>
-        addEdges(final int elements, final HGHandler handler, final Set<Node> nodes) {
-        final Set<HGBergeLink> edges = new HashSet<HGBergeLink>();
-        // Filling the test structure including the graph
-        for (int i = 0; i < elements; i++) {
-            // Getting one node
-            final HGBergeLink edge = HGTestUtil.generateEdge(nodes, handler.getHGDB());
-            // adding node to test structure and set including the resulting
-            // handles to another set, it is tested that no two links have the same set of children
-            if (edges.size() == 0) {
-                edges.add(edge);
-            } else {
-                // Check against already generated edges if the head (=child elements) are the same.
-                boolean doubleFound = false;
-                for (HGBergeLink link : edges.toArray(new HGBergeLink[edges.size()])) {
-                    if (link.getHead().equals(edge.getHead())) {
-                        doubleFound = true;
-                        break;
-                    }
-                }
-                if (doubleFound) {
-                    i--;
-                } else {
-                    edges.add(edge);
-                }
-            }
-        }
-        assertEquals(elements, edges.size());
-        return edges;
-    }
-
-    /**
      * Generating one link out of the denoted nodes already stored in a given graph.
      * 
-     * @param nodes
+     * @param parents
+     *            to be inserted
      *            where the link should be established within
+     * @param children
+     *            to be inserted
+     *            where the link should be established from
+     * @param numberOfParentsToInclude
+     *            number of parents a link should contain
+     * @param numberOfChildrenToInclude
+     *            number of childrena link should contain
+     * @param numberOfEdges
+     *            size of returnVal
      * @param graph
-     *            the graph where the nodes are already stored in
-     * @return one {@link HGBergeLink}
+     *            the graph where the nodes are already stored in to get the handles from
+     * @return a set of {@link HGBergeLink}
      */
-    private static HGBergeLink generateEdge(final Set<Node> paramNodes, final HyperGraph graph) {
-        // Transforming everything to a list
-        List<Node> nodes = new ArrayList<Node>();
-        nodes.addAll(paramNodes);
-        // getting the number of parents, and children
-        final int parentNumber = ran.nextInt(10);
-        final int childrenNumber = ran.nextInt(10);
-        // sets of parents and children
-        Set<HGHandle> parents = new HashSet<HGHandle>();
-        Set<HGHandle> children = new HashSet<HGHandle>();
-        // getting the parents
-        for (int i = 0; i < parentNumber; i++) {
-            parents.add(graph.getHandle(nodes.get(ran.nextInt(nodes.size()))));
-        }
-        // getting the children
-        for (int i = 0; i < childrenNumber; i++) {
-            children.add(graph.getHandle(nodes.get(ran.nextInt(nodes.size()))));
+    public static Set<HGBergeLink> generateEdgePerLevel(final Set<Node> parents, final Set<Node> children,
+        final int numberOfParentsToInclude, final int numberOfChildrenToInclude, final int numberOfEdges,
+        final HyperGraph graph) {
 
+        final Set<HGBergeLink> returnval = new HashSet<HGBergeLink>();
+
+        for (int i = 0; i < numberOfEdges; i++) {
+
+            // Transforming everything to a list
+            List<Node> parentList = new ArrayList<Node>();
+            parentList.addAll(parents);
+            List<Node> childList = new ArrayList<Node>();
+            childList.addAll(children);
+
+            // sets of parents and children
+            Set<HGHandle> parentHandles = new HashSet<HGHandle>();
+            Set<HGHandle> childrenHandles = new HashSet<HGHandle>();
+            // getting the parents
+            for (int j = 0; j < numberOfParentsToInclude; j++) {
+                HGHandle handle = graph.getHandle(parentList.get(ran.nextInt(parentList.size())));
+                if (parentHandles.contains(handle)) {
+                    j--;
+                } else {
+                    parentHandles.add(handle);
+                }
+            }
+            // getting the children
+            for (int j = 0; j < numberOfChildrenToInclude; j++) {
+                HGHandle handle = graph.getHandle(childList.get(ran.nextInt(childList.size())));
+                if (childrenHandles.contains(handle)) {
+                    j--;
+                } else {
+                    childrenHandles.add(handle);
+                }
+            }
+            // generating a link covering the denoted children and parents
+            HGBergeLink link =
+                new HGBergeLink(childrenHandles.toArray(new HGHandle[childrenHandles.size()]), parentHandles
+                    .toArray(new HGHandle[parentHandles.size()]));
+            if (returnval.contains(link)) {
+                i--;
+            } else {
+                assertEquals(numberOfParentsToInclude, link.getTail().size());
+                assertEquals(numberOfChildrenToInclude, link.getHead().size());
+                returnval.add(link);
+            }
         }
-        // generating a link covering the denoted children and parents
-        return new HGBergeLink(children.toArray(new HGHandle[children.size()]), parents
-            .toArray(new HGHandle[parents.size()]));
+        assertEquals(numberOfEdges, returnval.size());
+        return returnval;
+
     }
 
     /**

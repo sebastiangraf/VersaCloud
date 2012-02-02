@@ -130,16 +130,26 @@ public class HGHandlerTest {
             handler.addRight(nodes.get(i).toArray(new Node[nodes.get(i).size()]));
         }
 
+        // datastructure for returnval
+        // a set of pairs where each pair contains the parents and sink plus the related link
         final List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges =
             new ArrayList<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>>(layers - 1);
-        // Adding edges between the layered nodes. For testing purposes, only the nodes on the following
-        // layers are taken as sinks
+
+        // Adding edges between the layered nodes. For testing purposes, only the nodes on the next
+        // layer are taken as sinks
         int i = 0;
         do {
             edges.add(HGTestUtil.generateEdgePerLevel(nodes.get(i), nodes.get(i + 1), numberOfParents,
                 numberOfChildren, edgesPerLayer, handler.getHGDB()));
             i++;
         } while (i < layers - 1);
+
+        // inserting the links over the handler
+        for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> layerSet : edges) {
+            for (final Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> linksOnLayer : layerSet) {
+                handler.activateRight(linksOnLayer.getSecond().getTail(), linksOnLayer.getSecond().getHead());
+            }
+        }
 
     }
 

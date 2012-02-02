@@ -141,6 +141,7 @@ public class HGTestUtil {
             Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> returnSet =
                 new Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>(setPair, link);
 
+            //if link is existing, do not submit it
             if (returnval.contains(returnSet)) {
                 i--;
             } else {

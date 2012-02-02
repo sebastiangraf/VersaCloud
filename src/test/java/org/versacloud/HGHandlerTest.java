@@ -21,6 +21,7 @@ import java.util.Set;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.atom.HGBergeLink;
+import org.hypergraphdb.util.Pair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -117,11 +118,11 @@ public class HGHandlerTest {
     @Test
     public void testEdges() {
         // Setting nodes in different layers above each other
-        final int layers = 3;
-        final int nodesPerLayer = 100;
-        final int edgesPerLayer = 50;
-        final int numberOfParents = 3;
-        final int numberOfChildren = 3;
+        final int layers = 10;
+        final int nodesPerLayer = 500;
+        final int edgesPerLayer = 100;
+        final int numberOfParents = 20;
+        final int numberOfChildren = 20;
 
         final List<Set<Node>> nodes = new ArrayList<Set<Node>>(layers);
         for (int i = 0; i < layers; i++) {
@@ -129,7 +130,8 @@ public class HGHandlerTest {
             handler.addRight(nodes.get(i).toArray(new Node[nodes.get(i).size()]));
         }
 
-        final List<Set<HGBergeLink>> edges = new ArrayList<Set<HGBergeLink>>(layers - 1);
+        final List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges =
+            new ArrayList<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>>(layers - 1);
         // Adding edges between the layered nodes. For testing purposes, only the nodes on the following
         // layers are taken as sinks
         int i = 0;
@@ -138,7 +140,7 @@ public class HGHandlerTest {
                 numberOfChildren, edgesPerLayer, handler.getHGDB()));
             i++;
         } while (i < layers - 1);
-        
+
     }
 
     /**

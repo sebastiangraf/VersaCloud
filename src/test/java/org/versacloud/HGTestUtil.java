@@ -4,6 +4,7 @@
 package org.versacloud;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.Set;
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.atom.HGBergeLink;
+import org.hypergraphdb.util.Pair;
 import org.versacloud.model.Node;
 
 /**
@@ -83,53 +85,68 @@ public class HGTestUtil {
      *            size of returnVal
      * @param graph
      *            the graph where the nodes are already stored in to get the handles from
-     * @return a set of {@link HGBergeLink}
+     * @return a set containing <<parents(Set<Node>),children(Set<Node>)>,links<HGBergeLink>>
      */
-    public static Set<HGBergeLink> generateEdgePerLevel(final Set<Node> parents, final Set<Node> children,
-        final int numberOfParentsToInclude, final int numberOfChildrenToInclude, final int numberOfEdges,
-        final HyperGraph graph) {
+    public static Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> generateEdgePerLevel(
+        final Set<Node> parents, final Set<Node> children, final int numberOfParentsToInclude,
+        final int numberOfChildrenToInclude, final int numberOfEdges, final HyperGraph graph) {
 
-        final Set<HGBergeLink> returnval = new HashSet<HGBergeLink>();
+        final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> returnval =
+            new HashSet<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>();
 
         for (int i = 0; i < numberOfEdges; i++) {
 
             // Transforming everything to a list
-            List<Node> parentList = new ArrayList<Node>();
-            parentList.addAll(parents);
-            List<Node> childList = new ArrayList<Node>();
-            childList.addAll(children);
+            List<Node> allParentsList = new ArrayList<Node>();
+            allParentsList.addAll(parents);
+            List<Node> allChildrenList = new ArrayList<Node>();
+            allChildrenList.addAll(children);
 
             // sets of parents and children
             Set<HGHandle> parentHandles = new HashSet<HGHandle>();
+            Set<Node> parentNodes = new HashSet<Node>();
             Set<HGHandle> childrenHandles = new HashSet<HGHandle>();
+            Set<Node> childrenNodes = new HashSet<Node>();
             // getting the parents
             for (int j = 0; j < numberOfParentsToInclude; j++) {
-                HGHandle handle = graph.getHandle(parentList.get(ran.nextInt(parentList.size())));
+                Node parent = allParentsList.get(ran.nextInt(allParentsList.size()));
+                HGHandle handle = graph.getHandle(parent);
                 if (parentHandles.contains(handle)) {
+                    assertTrue(parentNodes.contains(parent));
                     j--;
                 } else {
+                    parentNodes.add(parent);
                     parentHandles.add(handle);
                 }
             }
             // getting the children
             for (int j = 0; j < numberOfChildrenToInclude; j++) {
-                HGHandle handle = graph.getHandle(childList.get(ran.nextInt(childList.size())));
+                Node child = allChildrenList.get(ran.nextInt(allChildrenList.size()));
+                HGHandle handle = graph.getHandle(child);
                 if (childrenHandles.contains(handle)) {
+                    assertTrue(childrenNodes.contains(child));
                     j--;
                 } else {
+                    childrenNodes.add(child);
                     childrenHandles.add(handle);
                 }
             }
-            // generating a link covering the denoted children and parents
+            // Setting testing pair
+            Pair<Set<Node>, Set<Node>> setPair = new Pair<Set<Node>, Set<Node>>(parentNodes, childrenNodes);
+            // Generating a link covering the denoted children and parents
             HGBergeLink link =
                 new HGBergeLink(childrenHandles.toArray(new HGHandle[childrenHandles.size()]), parentHandles
                     .toArray(new HGHandle[parentHandles.size()]));
-            if (returnval.contains(link)) {
+            // Generating final set
+            Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> returnSet =
+                new Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>(setPair, link);
+
+            if (returnval.contains(returnSet)) {
                 i--;
             } else {
                 assertEquals(numberOfParentsToInclude, link.getTail().size());
                 assertEquals(numberOfChildrenToInclude, link.getHead().size());
-                returnval.add(link);
+                returnval.add(returnSet);
             }
         }
         assertEquals(numberOfEdges, returnval.size());

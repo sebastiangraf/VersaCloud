@@ -235,9 +235,10 @@ public final class HGHandler implements IRightHandler {
                 new HGBergeLink(children.toArray(new HGHandle[children.size()]), parents
                     .toArray(new HGHandle[parents.size()]));
             getHGDB().add(link);
-            LOGGER.debug("update necessary: inserted handle " + link);
+            LOGGER.debug("New Insert: inserted handle " + link);
         }
 
+        System.out.println("blubb");
         // adaptDescendants(children);
     }
 

@@ -8,17 +8,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-import static org.versacloud.HGTestUtil.generateEdgePerLevel;
 import static org.versacloud.HGTestUtil.addNodes;
-import static org.versacloud.HGTestUtil.checkLinks;
 import static org.versacloud.HGTestUtil.recursiveDelete;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.hypergraphdb.HGHandle;
+import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.atom.HGBergeLink;
 import org.hypergraphdb.util.Pair;
@@ -118,11 +118,11 @@ public class HGHandlerTest {
     @Test
     public void testEdges() {
         // Setting nodes in different layers above each other
-        final int layers = 10;
-        final int nodesPerLayer = 500;
-        final int edgesPerLayer = 100;
-        final int numberOfParents = 20;
-        final int numberOfChildren = 20;
+        final int layers = 3;
+        final int nodesPerLayer = 10;
+        final int edgesPerLayer = 50;
+        final int numberOfParents = 8;
+        final int numberOfChildren = 8;
 
         final List<Set<Node>> nodes = new ArrayList<Set<Node>>(layers);
         for (int i = 0; i < layers; i++) {
@@ -144,17 +144,35 @@ public class HGHandlerTest {
             i++;
         } while (i < layers - 1);
 
+        // Pulling the datastructure apart again for better testing
+        final Set<HGBergeLink> linksOnly = new HashSet<HGBergeLink>();
+        final Set<Pair<Set<Node>, Set<Node>>> nodesOnly = new HashSet<Pair<Set<Node>, Set<Node>>>();
         // inserting the links over the handler
         for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> layerSet : edges) {
             for (final Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> linksOnLayer : layerSet) {
+                linksOnly.add(linksOnLayer.getSecond());
+                nodesOnly.add(linksOnLayer.getFirst());
                 handler.activateRight(linksOnLayer.getSecond().getTail(), linksOnLayer.getSecond().getHead());
             }
         }
+        // The check sets must be equals
+        assertEquals(linksOnly.size(), nodesOnly.size());
+        
+        // checking, getting the data out of the db
+        final List<HGHandle> resultset = hg.findAll(handler.getHGDB(), hg.type(HGBergeLink.class));
+        // The check sets must be equals
+        assertEquals(resultset.size(), nodesOnly.size());
 
-        
-        
-        
-        
+        // Checking element by element
+        for (HGHandle dbTestHandle : resultset) {
+            HGBergeLink dbLink = handler.getHGDB().get(dbTestHandle);
+            if (linksOnly.contains(dbLink)) {
+                // assertEquals(dbLink.getTail(), );
+            } else {
+                fail("Link was stored but is not in DB " + dbLink.toString());
+            }
+        }
+
     }
 
     /**

@@ -111,6 +111,7 @@ public class HGTestUtil {
             for (int j = 0; j < numberOfParentsToInclude; j++) {
                 Node parent = allParentsList.get(ran.nextInt(allParentsList.size()));
                 HGHandle handle = graph.getHandle(parent);
+                // Check that each node is only once in the set
                 if (parentHandles.contains(handle)) {
                     assertTrue(parentNodes.contains(parent));
                     j--;
@@ -123,6 +124,7 @@ public class HGTestUtil {
             for (int j = 0; j < numberOfChildrenToInclude; j++) {
                 Node child = allChildrenList.get(ran.nextInt(allChildrenList.size()));
                 HGHandle handle = graph.getHandle(child);
+                // Check that each node is only once in the set
                 if (childrenHandles.contains(handle)) {
                     assertTrue(childrenNodes.contains(child));
                     j--;
@@ -141,7 +143,7 @@ public class HGTestUtil {
             Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> returnSet =
                 new Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>(setPair, link);
 
-            //if link is existing, do not submit it
+            // if link is existing, do not submit it
             if (returnval.contains(returnSet)) {
                 i--;
             } else {

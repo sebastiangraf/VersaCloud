@@ -129,17 +129,16 @@ public class HGHandlerTest {
             handler.addRight(nodes.get(i).toArray(new Node[nodes.get(i).size()]));
         }
 
+        final List<Set<HGBergeLink>> edges = new ArrayList<Set<HGBergeLink>>(layers - 1);
         // Adding edges between the layered nodes. For testing purposes, only the nodes on the following
         // layers are taken as sinks
         int i = 0;
         do {
-
-            final Set<HGBergeLink> set =
-                HGTestUtil.generateEdgePerLevel(nodes.get(i), nodes.get(i + 1), numberOfParents,
-                    numberOfChildren, edgesPerLayer, handler.getHGDB());
+            edges.add(HGTestUtil.generateEdgePerLevel(nodes.get(i), nodes.get(i + 1), numberOfParents,
+                numberOfChildren, edgesPerLayer, handler.getHGDB()));
             i++;
         } while (i < layers - 1);
-
+        
     }
 
     /**

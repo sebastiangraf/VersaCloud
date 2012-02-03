@@ -238,7 +238,6 @@ public final class HGHandler implements IRightHandler {
             LOGGER.debug("New Insert: inserted handle " + link);
         }
 
-        System.out.println("blubb");
         // adaptDescendants(children);
     }
 

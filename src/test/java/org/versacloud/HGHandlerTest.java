@@ -150,14 +150,34 @@ public class HGHandlerTest {
         // inserting the links over the handler
         for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> layerSet : edges) {
             for (final Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> linksOnLayer : layerSet) {
-                linksOnly.add(linksOnLayer.getSecond());
-                nodesOnly.add(linksOnLayer.getFirst());
+                // ensure that links and nodes are equal that means that if a link exists, there must be a
+                // suitable set for nodes as well.
+                boolean insertedLinks = linksOnly.add(linksOnLayer.getSecond());
+                boolean insertedSets = nodesOnly.add(linksOnLayer.getFirst());
+                // if (insertedLinks != insertedSets) {
+                // HGBergeLink linkFromReturn = linksOnLayer.getSecond();
+                // Pair<Set<Node>, Set<Node>> nodeFromReturn = linksOnLayer.getFirst();
+                // Set<Node> proveParentSet = new HashSet<Node>();
+                // Set<Node> proveChildSet = new HashSet<Node>();
+                // for (HGHandle parent : linkFromReturn.getTail()) {
+                // proveParentSet.add((Node)handler.getHGDB().get(parent));
+                // }
+                // for (HGHandle children : linkFromReturn.getHead()) {
+                // proveChildSet.add((Node)handler.getHGDB().get(children));
+                // }
+                // Pair<Set<Node>, Set<Node>> proveSet =
+                // new Pair<Set<Node>, Set<Node>>(proveParentSet, proveChildSet);
+                //
+                // System.out.println("blubb");
+                // }
+                assertEquals(insertedLinks, insertedSets);
+
                 handler.activateRight(linksOnLayer.getSecond().getTail(), linksOnLayer.getSecond().getHead());
             }
         }
         // The check sets must be equals
         assertEquals(linksOnly.size(), nodesOnly.size());
-        
+
         // checking, getting the data out of the db
         final List<HGHandle> resultset = hg.findAll(handler.getHGDB(), hg.type(HGBergeLink.class));
         // The check sets must be equals

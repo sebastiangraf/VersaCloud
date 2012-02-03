@@ -147,32 +147,20 @@ public class HGHandlerTest {
         // Pulling the datastructure apart again for better testing
         final Set<HGBergeLink> linksOnly = new HashSet<HGBergeLink>();
         final Set<Pair<Set<Node>, Set<Node>>> nodesOnly = new HashSet<Pair<Set<Node>, Set<Node>>>();
+        // Counter for duplicates to get knowledge if the insertion of a right ends up in a new edge or just
+        // updates a new edge (if the children are equal only) or ignores the request (if the children as well
+        // as the parents are equal)
+        int duplicateCounter = 0;
         // inserting the links over the handler
         for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> layerSet : edges) {
             for (final Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> linksOnLayer : layerSet) {
                 // ensure that links and nodes are equal that means that if a link exists, there must be a
                 // suitable set for nodes as well.
-                boolean insertedLinks = linksOnly.add(linksOnLayer.getSecond());
-                boolean insertedSets = nodesOnly.add(linksOnLayer.getFirst());
-                // if (insertedLinks != insertedSets) {
-                // HGBergeLink linkFromReturn = linksOnLayer.getSecond();
-                // Pair<Set<Node>, Set<Node>> nodeFromReturn = linksOnLayer.getFirst();
-                // Set<Node> proveParentSet = new HashSet<Node>();
-                // Set<Node> proveChildSet = new HashSet<Node>();
-                // for (HGHandle parent : linkFromReturn.getTail()) {
-                // proveParentSet.add((Node)handler.getHGDB().get(parent));
-                // }
-                // for (HGHandle children : linkFromReturn.getHead()) {
-                // proveChildSet.add((Node)handler.getHGDB().get(children));
-                // }
-                // Pair<Set<Node>, Set<Node>> proveSet =
-                // new Pair<Set<Node>, Set<Node>>(proveParentSet, proveChildSet);
-                //
-                // System.out.println("blubb");
-                // }
-                assertEquals(insertedLinks, insertedSets);
-
-                handler.activateRight(linksOnLayer.getSecond().getTail(), linksOnLayer.getSecond().getHead());
+                assertEquals(linksOnly.add(linksOnLayer.getSecond()), nodesOnly.add(linksOnLayer.getFirst()));
+                if (!handler.activateRight(linksOnLayer.getSecond().getTail(), linksOnLayer.getSecond()
+                    .getHead())) {
+                    duplicateCounter++;
+                }
             }
         }
         // The check sets must be equals
@@ -181,7 +169,7 @@ public class HGHandlerTest {
         // checking, getting the data out of the db
         final List<HGHandle> resultset = hg.findAll(handler.getHGDB(), hg.type(HGBergeLink.class));
         // The check sets must be equals
-        assertEquals(resultset.size(), nodesOnly.size());
+        assertEquals(resultset.size(), nodesOnly.size() - duplicateCounter);
 
         // Checking element by element
         for (HGHandle dbTestHandle : resultset) {

@@ -189,7 +189,7 @@ public final class HGHandler implements IRightHandler {
      * @param children
      *            the groups, providing the right
      */
-    public void activateRight(final Set<HGHandle> parents, final Set<HGHandle> children) {
+    public boolean activateRight(final Set<HGHandle> parents, final Set<HGHandle> children) {
         LOGGER.debug("Activate link for parents " + parents + " and children " + children);
         // Get a possible hyperedge containing all children, the size must be
         // one since there should be only
@@ -223,12 +223,13 @@ public final class HGHandler implements IRightHandler {
             // granted
             if (link.getTail().containsAll(parents)) {
                 LOGGER.debug("no update necessary");
-                return;
+                return false;
             } // right is existing, adapt right by inserting the new parents
             else {
                 LOGGER.debug("update necessary: replaced handle " + handle);
                 link.getTail().addAll(parents);
                 getHGDB().replace(handle, link);
+                return false;
             }
         } else {
             link =
@@ -236,6 +237,7 @@ public final class HGHandler implements IRightHandler {
                     .toArray(new HGHandle[parents.size()]));
             getHGDB().add(link);
             LOGGER.debug("New Insert: inserted handle " + link);
+            return true;
         }
 
         // adaptDescendants(children);

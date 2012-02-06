@@ -196,9 +196,17 @@ public class HGHandlerTest {
                 fail("Link was stored but is not in DB " + dbLink.toString());
             }
         }
-
     }
 
+    /**
+     * Test method for {@link org.versacloud.HGHandler#deactivateRight(java.util.Set, java.util.Set)} .
+     */
+    @Test
+    public void testDeactivateRight() {
+    	
+    	
+    }
+    
     /**
      * Test method for {@link org.versacloud.HGHandler#removeRight(org.versacloud.model.Node)}.
      */
@@ -207,13 +215,7 @@ public class HGHandlerTest {
     public void testRemoveRight() {
     }
 
-    /**
-     * Test method for {@link org.versacloud.HGHandler#deactivateRight(java.util.Set, java.util.Set)} .
-     */
-    @Test
-    @Ignore
-    public void testDeactivateRight() {
-    }
+
 
     /**
      * Test method for {@link org.versacloud.HGHandler#adaptDescendants(java.util.Set)}.

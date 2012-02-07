@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.versacloud.model.Node;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test case for HGHandler
@@ -131,48 +132,70 @@ public class HGHandlerTest {
         int duplicateCounter = 0;
         // inserting the links over the handler
         for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> layerSet : edges) {
+            // Structure of links
+            // <<parents(Set<Node>),children(Set<Node>)>,links<HGBergeLink>>
             for (final Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> linksOnLayer : layerSet) {
+
+                // Removing duplicates
+                Set<Node> childrenInEdges = linksOnLayer.getFirst().getSecond();
+                Set<Pair<Set<Node>, Set<Node>>> toRemove = new HashSet<Pair<Set<Node>, Set<Node>>>();
+                // Needed for adaption of test-structures. Otherwise the duplication
+                for (final Pair<Set<Node>, Set<Node>> testNodes : nodesOnly) {
+                    if (testNodes.getSecond().equals(childrenInEdges)) {
+
+                        // if the children-set is equal, insert all parents of the already stored one.
+                        toRemove.add(testNodes);
+                        linksOnLayer.getFirst().getFirst().addAll(testNodes.getFirst());
+                    }
+                }
+                // each edge containg a fixed set of children should be inserted just once
+                assertTrue(toRemove.size() <= 1);
+                for (Pair<Set<Node>, Set<Node>> toRemoveSingle : toRemove) {
+                    nodesOnly.remove(toRemoveSingle);
+                }
+
                 // ensure that links and nodes are equal that means that if a
-                // link exists, there must be a
-                // suitable set for nodes as well.
-                assertEquals(linksOnly.add(linksOnLayer.getSecond()), nodesOnly.add(linksOnLayer.getFirst()));
+                // link exists, there must be a suitable set for nodes as well.
+                linksOnly.add(linksOnLayer.getSecond());
+                nodesOnly.add(linksOnLayer.getFirst());
                 if (!handler.activateRight(linksOnLayer.getSecond().getTail(), linksOnLayer.getSecond()
                     .getHead())) {
                     duplicateCounter++;
                 }
             }
         }
-        // The check sets must be equals
-        assertEquals(linksOnly.size(), nodesOnly.size());
 
         // checking, getting the data out of the db
         final List<HGHandle> resultset = hg.findAll(handler.getHGDB(), hg.type(HGBergeLink.class));
-        // The check sets must be equals
-        assertEquals(resultset.size(), nodesOnly.size() - duplicateCounter);
+
+        // Checking for size of resulting structures
+        assertEquals(resultset.size(), nodesOnly.size());
+        assertEquals(linksOnly.size(), nodesOnly.size() + duplicateCounter);
 
         // Checking element by element
         for (HGHandle dbTestHandle : resultset) {
             // Getting the link
             HGBergeLink dbLink = handler.getHGDB().get(dbTestHandle);
-            if (linksOnly.contains(dbLink)) {
-                // Getting the nodes from the db
-                Set<Node> parentsToCheck = new HashSet<Node>();
-                Set<Node> childrenToCheck = new HashSet<Node>();
-                for (HGHandle parentHandle : dbLink.getTail()) {
-                    parentsToCheck.add((Node)handler.getHGDB().get(parentHandle));
-                }
-                for (HGHandle childrenHandle : dbLink.getHead()) {
-                    childrenToCheck.add((Node)handler.getHGDB().get(childrenHandle));
-                }
-                Pair<Set<Node>, Set<Node>> nodesToCheck =
-                    new Pair<Set<Node>, Set<Node>>(parentsToCheck, childrenToCheck);
-                // If nodes are not in DB, fail!
-                if (!nodesOnly.contains(nodesToCheck)) {
-                    fail("Nodes was stored but is not in DB " + dbLink.toString());
-                }
-            } else {
-                fail("Link was stored but is not in DB " + dbLink.toString());
+            // if (linksOnly.contains(dbLink)) {
+            // Getting the nodes from the db
+            Set<Node> parentsToCheck = new HashSet<Node>();
+            Set<Node> childrenToCheck = new HashSet<Node>();
+            for (HGHandle parentHandle : dbLink.getTail()) {
+                parentsToCheck.add((Node)handler.getHGDB().get(parentHandle));
             }
+            for (HGHandle childrenHandle : dbLink.getHead()) {
+                childrenToCheck.add((Node)handler.getHGDB().get(childrenHandle));
+            }
+            Pair<Set<Node>, Set<Node>> nodesToCheck =
+                new Pair<Set<Node>, Set<Node>>(parentsToCheck, childrenToCheck);
+            // If nodes are not in DB, fail!
+            if (!nodesOnly.contains(nodesToCheck)) {
+
+                fail("Nodes was stored but is not in DB " + dbLink.toString());
+            }
+            // } else {
+            // fail("Link was stored but is not in DB " + dbLink.toString());
+            // }
         }
     }
 
@@ -228,6 +251,7 @@ public class HGHandlerTest {
      * @param handler
      *            to generate the stuff
      * @return returning the list
+     *         level<set<<<parents(Set<Node>),children(Set<Node>)>,links<HGBergeLink>>>>
      */
     private static List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> addEdge(final HGHandler handler) {
         // Setting nodes in different layers above each other

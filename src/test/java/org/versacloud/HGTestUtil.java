@@ -69,14 +69,13 @@ public class HGTestUtil {
     }
 
     /**
-     * Generating one link out of the denoted nodes already stored in a given graph.
+     * Generating one link out of the denoted nodes already stored in a given
+     * graph. No links are stored in the DB, instead the links are simply created and store in the return val.
      * 
      * @param parents
-     *            to be inserted
-     *            where the link should be established within
+     *            to be inserted where the link should be established within
      * @param children
-     *            to be inserted
-     *            where the link should be established from
+     *            to be inserted where the link should be established from
      * @param numberOfParentsToInclude
      *            number of parents a link should contain
      * @param numberOfChildrenToInclude
@@ -84,8 +83,10 @@ public class HGTestUtil {
      * @param numberOfEdges
      *            size of returnVal
      * @param graph
-     *            the graph where the nodes are already stored in to get the handles from
-     * @return a set containing <<parents(Set<Node>),children(Set<Node>)>,links<HGBergeLink>>
+     *            the graph where the nodes are already stored in to get the
+     *            handles from
+     * @return a set containing
+     *         <<parents(Set<Node>),children(Set<Node>)>,links<HGBergeLink>>
      */
     public static Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> generateEdgePerLevel(
         final Set<Node> parents, final Set<Node> children, final int numberOfParentsToInclude,

@@ -117,44 +117,23 @@ public class HGHandlerTest {
      */
     @Test
     public void testEdges() {
-        // Setting nodes in different layers above each other
-        final int layers = 3;
-        final int nodesPerLayer = 10;
-        final int edgesPerLayer = 50;
-        final int numberOfParents = 8;
-        final int numberOfChildren = 8;
 
-        final List<Set<Node>> nodes = new ArrayList<Set<Node>>(layers);
-        for (int i = 0; i < layers; i++) {
-            nodes.add(addNodes(nodesPerLayer));
-            handler.addRight(nodes.get(i).toArray(new Node[nodes.get(i).size()]));
-        }
-
-        // datastructure for returnval
-        // a set of pairs where each pair contains the parents and sink plus the related link
-        final List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges =
-            new ArrayList<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>>(layers - 1);
-
-        // Adding edges between the layered nodes. For testing purposes, only the nodes on the next
-        // layer are taken as sinks
-        int i = 0;
-        do {
-            edges.add(HGTestUtil.generateEdgePerLevel(nodes.get(i), nodes.get(i + 1), numberOfParents,
-                numberOfChildren, edgesPerLayer, handler.getHGDB()));
-            i++;
-        } while (i < layers - 1);
+        final List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges = addEdge(handler);
 
         // Pulling the datastructure apart again for better testing
         final Set<HGBergeLink> linksOnly = new HashSet<HGBergeLink>();
         final Set<Pair<Set<Node>, Set<Node>>> nodesOnly = new HashSet<Pair<Set<Node>, Set<Node>>>();
-        // Counter for duplicates to get knowledge if the insertion of a right ends up in a new edge or just
-        // updates a new edge (if the children are equal only) or ignores the request (if the children as well
+        // Counter for duplicates to get knowledge if the insertion of a right
+        // ends up in a new edge or just
+        // updates a new edge (if the children are equal only) or ignores the
+        // request (if the children as well
         // as the parents are equal)
         int duplicateCounter = 0;
         // inserting the links over the handler
         for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> layerSet : edges) {
             for (final Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> linksOnLayer : layerSet) {
-                // ensure that links and nodes are equal that means that if a link exists, there must be a
+                // ensure that links and nodes are equal that means that if a
+                // link exists, there must be a
                 // suitable set for nodes as well.
                 assertEquals(linksOnly.add(linksOnLayer.getSecond()), nodesOnly.add(linksOnLayer.getFirst()));
                 if (!handler.activateRight(linksOnLayer.getSecond().getTail(), linksOnLayer.getSecond()
@@ -191,7 +170,6 @@ public class HGHandlerTest {
                 if (!nodesOnly.contains(nodesToCheck)) {
                     fail("Nodes was stored but is not in DB " + dbLink.toString());
                 }
-
             } else {
                 fail("Link was stored but is not in DB " + dbLink.toString());
             }
@@ -203,10 +181,28 @@ public class HGHandlerTest {
      */
     @Test
     public void testDeactivateRight() {
-    	
-    	
+        // Get the randomly generated edges
+        final List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges = addEdge(handler);
+        // Inserting the handles
+
+        // inserting the links over the handler
+        for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> layerSet : edges) {
+            for (final Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> linksOnLayer : layerSet) {
+                // insertion in the db must occur over the handler since otherwise redundant roles covering
+                // the same children are not eliminated.
+                handler.activateRight(linksOnLayer.getSecond().getTail(), linksOnLayer.getSecond().getHead());
+            }
+        }
+
+        // Removing the stuff
+        for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> level : edges) {
+            for (Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> singleLink : level) {
+                handler.deactivateRight(singleLink.getSecond().getTail(), singleLink.getSecond().getHead());
+            }
+        }
+
     }
-    
+
     /**
      * Test method for {@link org.versacloud.HGHandler#removeRight(org.versacloud.model.Node)}.
      */
@@ -215,14 +211,53 @@ public class HGHandlerTest {
     public void testRemoveRight() {
     }
 
-
-
     /**
      * Test method for {@link org.versacloud.HGHandler#adaptDescendants(java.util.Set)}.
      */
     @Test
     @Ignore
     public void testAdaptDescendants() {
+    }
+
+    /**
+     * Generates a list of return values: A list containing a set of pairs
+     * representing the different layers. Each layer in the list is represented
+     * by a set of edges. Each element of the set contains sets of parents and
+     * children linked to suitable HGBergeLinks
+     * 
+     * @param handler
+     *            to generate the stuff
+     * @return returning the list
+     */
+    private static List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> addEdge(final HGHandler handler) {
+        // Setting nodes in different layers above each other
+        final int layers = 3;
+        final int nodesPerLayer = 10;
+        final int edgesPerLayer = 50;
+        final int numberOfParents = 8;
+        final int numberOfChildren = 8;
+
+        final List<Set<Node>> nodes = new ArrayList<Set<Node>>(layers);
+        for (int i = 0; i < layers; i++) {
+            nodes.add(addNodes(nodesPerLayer));
+            handler.addRight(nodes.get(i).toArray(new Node[nodes.get(i).size()]));
+        }
+
+        // datastructure for returnval
+        // a set of pairs where each pair contains the parents and sink plus the
+        // related link
+        final List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges =
+            new ArrayList<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>>(layers - 1);
+
+        // Adding edges between the layered nodes. For testing purposes, only
+        // the nodes on the next layer are taken as sinks
+        int i = 0;
+        do {
+            edges.add(HGTestUtil.generateEdgePerLevel(nodes.get(i), nodes.get(i + 1), numberOfParents,
+                numberOfChildren, edgesPerLayer, handler.getHGDB()));
+            i++;
+        } while (i < layers - 1);
+        return edges;
     }
 
 }

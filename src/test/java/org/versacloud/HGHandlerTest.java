@@ -287,11 +287,11 @@ public class HGHandlerTest {
 
     }
 
-    static final int layers = 4;
-    static final int nodesPerLayer = 500;
-    static final int edgesPerLayer = 200;
-    static final int numberOfParents = 10;
-    static final int numberOfChildren = 10;
+    static final int layers = 3;
+    static final int nodesPerLayer = 50;
+    static final int edgesPerLayer = 50;
+    static final int numberOfParents = 20;
+    static final int numberOfChildren = 20;
 
     /**
      * Generates a list of return values: A list containing a set of pairs

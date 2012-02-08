@@ -53,6 +53,7 @@ public class HGHandlerTest {
         recursiveDelete(new File(databaseLocation));
         graph = new HyperGraph(databaseLocation);
         handler = new HGHandler(graph);
+        HGTestUtil.identifier = 0;
     }
 
     /**
@@ -228,11 +229,10 @@ public class HGHandlerTest {
 
         // getting all nodes only
         Set<Node> allNodes = new HashSet<Node>();
-        for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> level : edges) {
-            for (Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> singleLink : level) {
-                allNodes.addAll(singleLink.getFirst().getFirst());
-                allNodes.addAll(singleLink.getFirst().getSecond());
-            }
+
+        for (int i = 0; i < HGTestUtil.identifier; i++) {
+            allNodes.add(handler.getRight(i, 0));
+
         }
         assertEquals(nodesPerLayer * layers, allNodes.size());
 
@@ -285,11 +285,11 @@ public class HGHandlerTest {
 
     }
 
-    static final int layers = 3;
-    static final int nodesPerLayer = 10;
-    static final int edgesPerLayer = 50;
-    static final int numberOfParents = 8;
-    static final int numberOfChildren = 8;
+    static final int layers = 4;
+    static final int nodesPerLayer = 500;
+    static final int edgesPerLayer = 200;
+    static final int numberOfParents = 10;
+    static final int numberOfChildren = 10;
 
     /**
      * Generates a list of return values: A list containing a set of pairs

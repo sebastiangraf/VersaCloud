@@ -176,7 +176,6 @@ public class HGHandlerTest {
         for (HGHandle dbTestHandle : resultset) {
             // Getting the link
             HGBergeLink dbLink = handler.getHGDB().get(dbTestHandle);
-            // if (linksOnly.contains(dbLink)) {
             // Getting the nodes from the db
             Set<Node> parentsToCheck = new HashSet<Node>();
             Set<Node> childrenToCheck = new HashSet<Node>();
@@ -190,12 +189,8 @@ public class HGHandlerTest {
                 new Pair<Set<Node>, Set<Node>>(parentsToCheck, childrenToCheck);
             // If nodes are not in DB, fail!
             if (!nodesOnly.contains(nodesToCheck)) {
-
-                fail("Nodes was stored but is not in DB " + dbLink.toString());
+                fail("Nodes was stored but is not in DB " + nodesToCheck);
             }
-            // } else {
-            // fail("Link was stored but is not in DB " + dbLink.toString());
-            // }
         }
     }
 

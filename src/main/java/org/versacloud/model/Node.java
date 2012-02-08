@@ -36,8 +36,7 @@ public class Node {
      * @param paramName
      *            node name.
      */
-    public Node(final String paramName, final long paramKey,
-            final long paramVersion, byte[] paramSecret) {
+    public Node(final String paramName, final long paramKey, final long paramVersion, byte[] paramSecret) {
         this.key = paramKey;
         this.name = paramName;
         this.secret = paramSecret;
@@ -125,10 +124,10 @@ public class Node {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + (int) (key ^ (key >>> 32));
+        result = prime * result + (int)(key ^ (key >>> 32));
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + Arrays.hashCode(secret);
-        result = prime * result + (int) (version ^ (version >>> 32));
+        result = prime * result + (int)(version ^ (version >>> 32));
         return result;
     }
 
@@ -143,7 +142,7 @@ public class Node {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        Node other = (Node) obj;
+        Node other = (Node)obj;
         if (key != other.key)
             return false;
         if (name == null) {
@@ -163,6 +162,6 @@ public class Node {
      */
     @Override
     public String toString() {
-        return "Node [key=" + key + ", version="+ version + "]";
+        return "Node [key=" + key + /* ", version="+ version + */"]";
     }
 }

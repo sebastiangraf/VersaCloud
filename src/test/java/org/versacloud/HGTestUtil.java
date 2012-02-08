@@ -158,6 +158,9 @@ public class HGTestUtil {
 
     }
 
+    static int version = 0;
+    static int identifier = 0;
+
     /**
      * Generate one single node
      * 
@@ -171,7 +174,7 @@ public class HGTestUtil {
         byte[] secret = new byte[100];
         ran.nextBytes(secret);
         // Inserting node
-        return new Node(name, ran.nextInt(), ran.nextInt(), secret);
+        return new Node(name, identifier++, version, secret);
     }
 
     public static void checkLinks(final Set<Node> nodes, final HGHandler handler) {

@@ -255,8 +255,10 @@ public class HGHandlerTest {
      * Test method for {@link org.versacloud.HGHandler#adaptDescendants(java.util.Set)}.
      */
     @Test
-    @Ignore
     public void testAdaptDescendants() {
+        final List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges = addEdge(handler);
+        registerEdges(edges);
+        
     }
 
     /**

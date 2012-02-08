@@ -201,16 +201,8 @@ public class HGHandlerTest {
     public void testDeactivateRight() {
         // Get the randomly generated edges
         final List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges = addEdge(handler);
-        // Inserting the handles
 
-        // inserting the links over the handler
-        for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> layerSet : edges) {
-            for (final Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> linksOnLayer : layerSet) {
-                // insertion in the db must occur over the handler since otherwise redundant roles covering
-                // the same children are not eliminated.
-                handler.activateRight(linksOnLayer.getSecond().getTail(), linksOnLayer.getSecond().getHead());
-            }
-        }
+        registerEdges(edges);
 
         // Removing the stuff
         for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> level : edges) {
@@ -219,14 +211,44 @@ public class HGHandlerTest {
             }
         }
 
+        // No edges should be in the set
+        List<HGHandle> edgeset = hg.findAll(handler.getHGDB(), hg.type(HGBergeLink.class));
+        assertEquals(0, edgeset.size());
+
     }
 
     /**
      * Test method for {@link org.versacloud.HGHandler#removeRight(org.versacloud.model.Node)}.
      */
     @Test
-    @Ignore
     public void testRemoveRight() {
+
+        final List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges = addEdge(handler);
+        registerEdges(edges);
+
+        // getting all nodes only
+        Set<Node> allNodes = new HashSet<Node>();
+        for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> level : edges) {
+            for (Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> singleLink : level) {
+                allNodes.addAll(singleLink.getFirst().getFirst());
+                allNodes.addAll(singleLink.getFirst().getSecond());
+            }
+        }
+        assertEquals(nodesPerLayer * layers, allNodes.size());
+
+        // removing the stuff
+        for (Node node : allNodes) {
+            handler.removeRight(node);
+        }
+
+        // No edges should be in the set
+        List<HGHandle> edgeset = hg.findAll(handler.getHGDB(), hg.type(HGBergeLink.class));
+        assertEquals(0, edgeset.size());
+
+        // No node should be in the set
+        List<HGHandle> nodeset = hg.findAll(handler.getHGDB(), hg.type(Node.class));
+        assertEquals(0, nodeset.size());
+
     }
 
     /**
@@ -236,6 +258,38 @@ public class HGHandlerTest {
     @Ignore
     public void testAdaptDescendants() {
     }
+
+    /**
+     * Register the edges over the handler interface and check the number of insertions
+     * 
+     * @param edges
+     *            to be inserted
+     */
+    private void registerEdges(List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges) {
+        // Inserting the handles
+        int elementCounter = 0;
+        // inserting the links over the handler
+        for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> layerSet : edges) {
+            for (final Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> linksOnLayer : layerSet) {
+                // insertion in the db must occur over the handler since otherwise redundant roles covering
+                // the same children are not eliminated.
+                if (handler.activateRight(linksOnLayer.getSecond().getTail(), linksOnLayer.getSecond()
+                    .getHead())) {
+                    elementCounter++;
+                }
+            }
+        }
+        // checking the inserted edges: handler.activateRight->true
+        List<HGHandle> edgeset = hg.findAll(handler.getHGDB(), hg.type(HGBergeLink.class));
+        assertEquals(elementCounter, edgeset.size());
+
+    }
+
+    static final int layers = 3;
+    static final int nodesPerLayer = 10;
+    static final int edgesPerLayer = 50;
+    static final int numberOfParents = 8;
+    static final int numberOfChildren = 8;
 
     /**
      * Generates a list of return values: A list containing a set of pairs
@@ -250,11 +304,6 @@ public class HGHandlerTest {
      */
     private static List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> addEdge(final HGHandler handler) {
         // Setting nodes in different layers above each other
-        final int layers = 3;
-        final int nodesPerLayer = 10;
-        final int edgesPerLayer = 50;
-        final int numberOfParents = 8;
-        final int numberOfChildren = 8;
 
         final List<Set<Node>> nodes = new ArrayList<Set<Node>>(layers);
         for (int i = 0; i < layers; i++) {

@@ -301,8 +301,6 @@ public final class HGHandler implements IRightHandler {
                 if (handle == null) {
                     handle = tmpHandle;
                 } else {
-                    final String string1 = testNodes(handle);
-                    final String string2 = testNodes(tmpHandle);
                     throw new IllegalStateException("the set should only be contained once");
                 }
             }
@@ -310,22 +308,22 @@ public final class HGHandler implements IRightHandler {
         return handle;
     }
 
-    private String testNodes(final HGHandle handle) {
-        HGBergeLink link = (HGBergeLink)getHGDB().get(handle);
-        final StringBuilder returnval = new StringBuilder();
-        for (final HGHandle tmpHand : link.getHead()) {
-            Node node = getHGDB().get(tmpHand);
-            returnval.append(node);
-            returnval.append("\n");
-        }
-        returnval.append("\n");
-        for (final HGHandle tmpHand : link.getTail()) {
-            Node node = getHGDB().get(tmpHand);
-            returnval.append(node);
-            returnval.append("\n");
-        }
-        return returnval.toString();
-    }
+//    private String testNodes(final HGHandle handle) {
+//        HGBergeLink link = (HGBergeLink)getHGDB().get(handle);
+//        final StringBuilder returnval = new StringBuilder();
+//        for (final HGHandle tmpHand : link.getHead()) {
+//            Node node = getHGDB().get(tmpHand);
+//            returnval.append(node);
+//            returnval.append("\n");
+//        }
+//        returnval.append("\n");
+//        for (final HGHandle tmpHand : link.getTail()) {
+//            Node node = getHGDB().get(tmpHand);
+//            returnval.append(node);
+//            returnval.append("\n");
+//        }
+//        return returnval.toString();
+//    }
 
     public HGHandle[] getDescendants(final HGHandle handle) {
         HGDepthFirstTraversal traversal = new HGDepthFirstTraversal(handle, new SimpleALGenerator(getHGDB()));

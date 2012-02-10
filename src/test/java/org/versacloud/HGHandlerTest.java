@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-import static org.versacloud.HGTestUtil.addNodes;
+import static org.versacloud.HGTestUtil.generateNodes;
 import static org.versacloud.HGTestUtil.recursiveDelete;
 
 import java.io.File;
@@ -71,7 +71,7 @@ public class HGHandlerTest {
     public void testAddNode() {
         int elements = 100;
         // Getting check structure
-        final Set<Node> nodes = addNodes(elements);
+        final Set<Node> nodes = generateNodes(elements);
         // inserting data
         handler.addRight(nodes.toArray(new Node[nodes.size()]));
 
@@ -102,7 +102,7 @@ public class HGHandlerTest {
      */
     @Test
     public void testData() {
-        final Node node = addNodes(1).toArray(new Node[1])[0];
+        final Node node = generateNodes(1).toArray(new Node[1])[0];
         handler.addRight(node);
         final HGHandle handle = handler.getRightHandle(node.getKey(), node.getVersion());
         assertNotNull(handle);
@@ -256,9 +256,8 @@ public class HGHandlerTest {
      */
     @Test
     public void testAdaptDescendants() {
-        final List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges = addEdge(handler);
-        registerEdges(edges);
-        
+        HGTestUtil.insertFixedEdges(handler.getHGDB());
+
     }
 
     /**
@@ -309,7 +308,7 @@ public class HGHandlerTest {
 
         final List<Set<Node>> nodes = new ArrayList<Set<Node>>(layers);
         for (int i = 0; i < layers; i++) {
-            nodes.add(addNodes(nodesPerLayer));
+            nodes.add(generateNodes(nodesPerLayer));
             handler.addRight(nodes.get(i).toArray(new Node[nodes.get(i).size()]));
         }
 

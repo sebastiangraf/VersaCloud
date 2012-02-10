@@ -4,6 +4,8 @@
 package org.versacloud;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -32,7 +34,8 @@ import org.versacloud.model.Node;
  */
 public final class HGHandler implements IRightHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HGHandler.class);
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(HGHandler.class);
 
     /** Instance of DB. */
     private final HyperGraph mDB;
@@ -68,7 +71,8 @@ public final class HGHandler implements IRightHandler {
         for (Node node : paramNodes) {
             handles[i] = getHGDB().add(node);
             i++;
-            LOGGER.debug("Adding at index " + i + " from " + paramNodes.length + " node " + node);
+            LOGGER.debug("Adding at index " + i + " from " + paramNodes.length
+                    + " node " + node);
         }
         mDB.runMaintenance();
         return handles;
@@ -87,20 +91,24 @@ public final class HGHandler implements IRightHandler {
      * @return a related Node
      */
     public HGHandle getRightHandle(final long key, final long version) {
-        final List<HGHandle> resultset =
-            hg.findAll(mDB, hg.and(hg.type(Node.class), hg.eq("version", version), hg.eq("key", key)));
+        final List<HGHandle> resultset = hg.findAll(
+                mDB,
+                hg.and(hg.type(Node.class), hg.eq("version", version),
+                        hg.eq("key", key)));
 
         switch (resultset.size()) {
         case 0:
             return null;
         case 1:
-            LOGGER
-                .debug("Getting handle " + resultset.get(0) + " for key " + key + " and version " + version);
+            LOGGER.debug("Getting handle " + resultset.get(0) + " for key "
+                    + key + " and version " + version);
             return resultset.get(0);
         default:
-            throw new IllegalStateException(new StringBuilder("Resultset should only be one but is ").append(
-                resultset.size()).append(" and contains the following elements: ").append(
-                resultset.toString()).toString());
+            throw new IllegalStateException(new StringBuilder(
+                    "Resultset should only be one but is ")
+                    .append(resultset.size())
+                    .append(" and contains the following elements: ")
+                    .append(resultset.toString()).toString());
         }
     }
 
@@ -159,7 +167,7 @@ public final class HGHandler implements IRightHandler {
         // Getting all nodes pointing to or from the node to be removed
         List<Object> edges = hg.getAll(getHGDB(), hg.incident(handle));
         for (int i = 0; i < edges.size(); i++) {
-            HGBergeLink link = (HGBergeLink)edges.get(i);
+            HGBergeLink link = (HGBergeLink) edges.get(i);
             // link either comes from the node...
             if (link.getTail().contains(handle)) {
                 final Set<HGHandle> parents = link.getTail();
@@ -173,7 +181,8 @@ public final class HGHandler implements IRightHandler {
             } // if a link is neither coming from a node nor going to one, it
               // must be an error.
             else {
-                throw new IllegalStateException("Link must either come from that node or go to that node");
+                throw new IllegalStateException(
+                        "Link must either come from that node or go to that node");
             }
         }
         getHGDB().remove(handle);
@@ -191,16 +200,18 @@ public final class HGHandler implements IRightHandler {
      * @return true if a new edge is inserted, false if nothing or an update
      *         occurs
      */
-    public boolean activateRight(final Set<HGHandle> parents, final Set<HGHandle> children) {
-        LOGGER.debug("Activate link for parents " + parents + " and children " + children);
+    public boolean activateRight(final Set<HGHandle> parents,
+            final Set<HGHandle> children) {
+        LOGGER.debug("Activate link for parents " + parents + " and children "
+                + children);
 
         // Getting the handle of an existing link if present
-        HGHandle handle = findExistingHandle(children);
+        HGHandle handle = findConcreteEdges(children);
 
         // an existing granted right was localized -> check the parents and
         // adapt
         if (handle != null) {
-            HGBergeLink link = (HGBergeLink)getHGDB().get(handle);
+            HGBergeLink link = (HGBergeLink) getHGDB().get(handle);
             Set<HGHandle> parentSet = link.getTail();
             // right is already activated -> just exit since right is already
             // granted
@@ -216,9 +227,9 @@ public final class HGHandler implements IRightHandler {
                 return false;
             }
         } else {
-            HGBergeLink link =
-                new HGBergeLink(children.toArray(new HGHandle[children.size()]), parents
-                    .toArray(new HGHandle[parents.size()]));
+            HGBergeLink link = new HGBergeLink(
+                    children.toArray(new HGHandle[children.size()]),
+                    parents.toArray(new HGHandle[parents.size()]));
             getHGDB().add(link);
             LOGGER.debug("New Insert: inserted handle " + link);
             return true;
@@ -241,12 +252,13 @@ public final class HGHandler implements IRightHandler {
      * @return true if an edge is removed, if an existing edge is adapted or no
      *         edge is found, false
      */
-    public boolean deactivateRight(final Set<HGHandle> parents, final Set<HGHandle> children) {
+    public boolean deactivateRight(final Set<HGHandle> parents,
+            final Set<HGHandle> children) {
 
-        HGHandle handle = findExistingHandle(children);
+        HGHandle handle = findConcreteEdges(children);
 
         if (handle != null) {
-            HGBergeLink link = (HGBergeLink)getHGDB().get(handle);
+            HGBergeLink link = (HGBergeLink) getHGDB().get(handle);
             // right is already activated -> remove all parents, part by part
             Set<HGHandle> parentSet = link.getTail();
             parentSet.removeAll(parents);
@@ -266,72 +278,31 @@ public final class HGHandler implements IRightHandler {
         }
     }
 
-    /**
-     * Get a possible hyperedge containing all children, the size must be one
-     * since there should be only one edge representing one granted right for
-     * one fixed set of children.
-     * 
-     * @param children
-     *            to the possible edge
-     * @param headNotTail
-     *            taking the head if true, the tail otherwise
-     * @return the handle of the edge if present, null otherwise
-     */
-    private HGHandle findExistingHandle(final Set<HGHandle> children) {
-        // finding the handles in the db and if no handles are present for an
-        // edge, usea new array
-        List<HGHandle> handles;
-        try {
-            // All handles are used which point to the elements. This includes
-            // subsets.
-            handles = hg.findAll(getHGDB(), hg.link(children));
-            LOGGER.debug("Found handles " + handles);
-        } catch (final RuntimeException exc) {
-            handles = new ArrayList<HGHandle>();
-            LOGGER.debug("Found no handles");
-        }
-
-        // This statement is the more fine granular statement to find exact the
-        // one and only set containing the elements either as parents or
-        // children
-        HGHandle handle = null;
-        for (HGHandle tmpHandle : handles) {
-            HGBergeLink link = (HGBergeLink)getHGDB().get(tmpHandle);
-            if (link.getHead().equals(children)) {
-                if (handle == null) {
-                    handle = tmpHandle;
-                } else {
-                    throw new IllegalStateException("the set should only be contained once");
-                }
-            }
-        }
-        return handle;
-    }
-
-//    private String testNodes(final HGHandle handle) {
-//        HGBergeLink link = (HGBergeLink)getHGDB().get(handle);
-//        final StringBuilder returnval = new StringBuilder();
-//        for (final HGHandle tmpHand : link.getHead()) {
-//            Node node = getHGDB().get(tmpHand);
-//            returnval.append(node);
-//            returnval.append("\n");
-//        }
-//        returnval.append("\n");
-//        for (final HGHandle tmpHand : link.getTail()) {
-//            Node node = getHGDB().get(tmpHand);
-//            returnval.append(node);
-//            returnval.append("\n");
-//        }
-//        return returnval.toString();
-//    }
+    // private String testNodes(final HGHandle handle) {
+    // HGBergeLink link = (HGBergeLink)getHGDB().get(handle);
+    // final StringBuilder returnval = new StringBuilder();
+    // for (final HGHandle tmpHand : link.getHead()) {
+    // Node node = getHGDB().get(tmpHand);
+    // returnval.append(node);
+    // returnval.append("\n");
+    // }
+    // returnval.append("\n");
+    // for (final HGHandle tmpHand : link.getTail()) {
+    // Node node = getHGDB().get(tmpHand);
+    // returnval.append(node);
+    // returnval.append("\n");
+    // }
+    // return returnval.toString();
+    // }
 
     public HGHandle[] getDescendants(final HGHandle handle) {
-        HGDepthFirstTraversal traversal = new HGDepthFirstTraversal(handle, new SimpleALGenerator(getHGDB()));
+        HGDepthFirstTraversal traversal = new HGDepthFirstTraversal(handle,
+                new SimpleALGenerator(getHGDB()));
         final List<HGHandle> returnval = new ArrayList<HGHandle>();
 
         while (traversal.hasNext()) {
             Pair<HGHandle, HGHandle> current = traversal.next();
-            HGBergeLink l = (HGBergeLink)getHGDB().get(current.getFirst());
+            HGBergeLink l = (HGBergeLink) getHGDB().get(current.getFirst());
             Object atom = getHGDB().get(current.getSecond());
             returnval.add(current.getSecond());
             System.out.println("Visiting atom " + atom + " pointed to by " + l);
@@ -342,11 +313,11 @@ public final class HGHandler implements IRightHandler {
 
     public void adaptDescendants(final Set<HGHandle> handles) {
         for (HGHandle handle : handles) {
-            HGDepthFirstTraversal traversal =
-                new HGDepthFirstTraversal(handle, new DefaultALGenerator(getHGDB()));
+            HGDepthFirstTraversal traversal = new HGDepthFirstTraversal(handle,
+                    new DefaultALGenerator(getHGDB()));
             while (traversal.hasNext()) {
                 Pair<HGHandle, HGHandle> current = traversal.next();
-                HGBergeLink l = (HGBergeLink)getHGDB().get(current.getFirst());
+                HGBergeLink l = (HGBergeLink) getHGDB().get(current.getFirst());
                 Object atom = getHGDB().get(current.getSecond());
                 // System.out.println("Visiting atom " + atom +
                 // " pointed to by "
@@ -363,6 +334,80 @@ public final class HGHandler implements IRightHandler {
      */
     public HyperGraph getHGDB() {
         return mDB;
+    }
+
+    /**
+     * Getting all handles as long as they are children, even subsets
+     * @param handle 
+     * @return
+     */
+    private List<HGHandle> getAllChildren(final HGHandle handle) {
+        List<HGHandle> returnval = new ArrayList<HGHandle>();
+        List<HGHandle> handles = findEvenSubsetEdges(new HashSet<HGHandle>(
+                Arrays.asList(new HGHandle[] { handle })));
+        for (HGHandle tmpHandle : handles) {
+            HGBergeLink link = (HGBergeLink) getHGDB().get(tmpHandle);
+            returnval.addAll(link.getHead());
+        }
+        return returnval;
+    }
+
+    /**
+     * Simple getting a list of edges containing all children related to a set
+     * of handles
+     * 
+     * @param children
+     *            where the children should be received from
+     * @return a list with a links containg all children even though the
+     *         children might only be subsets.
+     */
+    private List<HGHandle> findEvenSubsetEdges(final Set<HGHandle> children) {
+        // finding the handles in the db and if no handles are present for an
+        // edge, usea new array
+        List<HGHandle> handles;
+        try {
+            // All handles are used which point to the elements. This includes
+            // subsets.
+            handles = hg.findAll(getHGDB(), hg.link(children));
+            LOGGER.debug("Found handles " + handles);
+        } catch (final RuntimeException exc) {
+            handles = new ArrayList<HGHandle>();
+            LOGGER.debug("Found no handles");
+        }
+        return handles;
+    }
+
+    /**
+     * Get a possible hyperedge containing all children, the size must be one
+     * since there should be only one edge representing one granted right for
+     * one fixed set of children.
+     * 
+     * @param children
+     *            to the possible edge
+     * @param headNotTail
+     *            taking the head if true, the tail otherwise
+     * @return the handle of the edge if present, null otherwise
+     */
+    private HGHandle findConcreteEdges(final Set<HGHandle> children) {
+
+        List<HGHandle> handles = findEvenSubsetEdges(children);
+
+        // This statement is the more fine granular statement to find exact the
+        // one and only set containing the elements either as parents or
+        // children
+        HGHandle handle = null;
+        for (HGHandle tmpHandle : handles) {
+            HGBergeLink link = (HGBergeLink) getHGDB().get(tmpHandle);
+            if (link.getHead().equals(children)) {
+                if (handle == null) {
+                    handle = tmpHandle;
+                } else {
+                    throw new IllegalStateException(
+                            "the set should only be contained once");
+                }
+            }
+        }
+        return handle;
     }
 
 }

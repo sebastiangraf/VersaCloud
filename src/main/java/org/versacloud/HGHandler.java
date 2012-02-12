@@ -3,9 +3,9 @@
  */
 package org.versacloud;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,8 +14,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
@@ -318,24 +316,54 @@ public final class HGHandler implements IRightHandler {
 
     }
 
+    /**
+     * Iterating over all handles breadth-first. After each iteration, the
+     * 
+     * @param handles
+     *            a set of handles to start
+     * @param Method
+     *            to invoke within each iteration
+     */
     public void adaptDescendants(final Set<HGHandle> handles) {
-        ExecutorService exec = Executors.newCachedThreadPool();
-        
-        
-        
-        final Set<Future<List<HGHandle>>> returnVals = new HashSet<Future<List<HGHandle>>>();
-        final Set<HGHandle> returnValsOfOneLevel = handles;
-        for (final HGHandle handle : handles) {
-            Callable<List<HGHandle>> call = new Callable<List<HGHandle>>() {
-                @Override
-                public List<HGHandle> call() throws Exception {
-                    return getAllChildren(handle);
-                }
-            };
-            returnVals.add(exec.submit(call));
-        }
-        
+        // Threadpool for executing the iteration
+        final ExecutorService exec = Executors.newCachedThreadPool();
+        final Set<HGHandle> resultSet = new HashSet<HGHandle>();
 
+        // finishing variable...ensuring iteration until all levels are iterated
+        boolean finished = handles.size() != 0;
+        // init of handles per level;
+        Set<HGHandle> returnValsOfOneLevel = handles;
+        // while the finishing runs,...
+        while (!finished) {
+            final Set<Future<List<HGHandle>>> returnVals = new HashSet<Future<List<HGHandle>>>();
+            // ...all nodes are iterated based on the children only
+            for (final HGHandle handle : handles) {
+                Callable<List<HGHandle>> call = new Callable<List<HGHandle>>() {
+                    @Override
+                    public List<HGHandle> call() throws Exception {
+                        return getAllChildren(handle);
+                    }
+                };
+                returnVals.add(exec.submit(call));
+            }
+            // receiving the futures
+            for (final Future<List<HGHandle>> futures : returnVals) {
+                List<HGHandle> returnValsFromFuture = new ArrayList<HGHandle>();
+                try {
+                    returnValsFromFuture = futures.get();
+                } catch (InterruptedException e) {
+                    LOGGER.error(e.toString());
+                } catch (ExecutionException e) {
+                    LOGGER.error(e.toString());
+                }
+                returnValsOfOneLevel = new HashSet<HGHandle>();
+                returnValsOfOneLevel.addAll(returnValsFromFuture);
+                resultSet.addAll(returnValsFromFuture);
+            }
+            // see if there are new nodes to be evaluated
+            finished = returnValsOfOneLevel.size() != 0;
+        }
+        exec.shutdown();
     }
 
     /**

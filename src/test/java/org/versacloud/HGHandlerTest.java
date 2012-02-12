@@ -39,7 +39,8 @@ import static org.junit.Assert.assertTrue;
  */
 public class HGHandlerTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HGHandlerTest.class);
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(HGHandlerTest.class);
 
     private HGHandler handler;
     private HyperGraph graph;
@@ -65,7 +66,8 @@ public class HGHandlerTest {
     }
 
     /**
-     * Test method for {@link org.versacloud.HGHandler#addRight(org.versacloud.model.Node)}.
+     * Test method for
+     * {@link org.versacloud.HGHandler#addRight(org.versacloud.model.Node)}.
      */
     @Test
     public void testAddNode() {
@@ -80,7 +82,8 @@ public class HGHandlerTest {
             final long key = node.getKey();
             final long version = node.getVersion();
             final Node checkNode = handler.getRight(key, version);
-            LOGGER.debug("Checking node " + node + " at index " + i + " of " + nodes.size());
+            LOGGER.debug("Checking node " + node + " at index " + i + " of "
+                    + nodes.size());
             i++;
             if (!nodes.contains(checkNode)) {
                 fail();
@@ -89,33 +92,40 @@ public class HGHandlerTest {
     }
 
     /**
-     * Test method for {@link org.versacloud.HGHandler#addRight(org.versacloud.model.Node)}.
+     * Test method for
+     * {@link org.versacloud.HGHandler#addRight(org.versacloud.model.Node)}.
      */
     @Test
     public void testNonExistingNode() {
-        final HGHandle checkNode = handler.getRightHandle(Integer.MAX_VALUE, Integer.MAX_VALUE);
+        final HGHandle checkNode = handler.getRightHandle(Integer.MAX_VALUE,
+                Integer.MAX_VALUE);
         assertNull(checkNode);
     }
 
     /**
-     * Test method for {@link org.versacloud.HGHandler#addRight(org.versacloud.model.Node)}.
+     * Test method for
+     * {@link org.versacloud.HGHandler#addRight(org.versacloud.model.Node)}.
      */
     @Test
     public void testData() {
         final Node node = generateNodes(1).toArray(new Node[1])[0];
         handler.addRight(node);
-        final HGHandle handle = handler.getRightHandle(node.getKey(), node.getVersion());
+        final HGHandle handle = handler.getRightHandle(node.getKey(),
+                node.getVersion());
         assertNotNull(handle);
         final Node handleNode = handler.getRight(handle);
         assertEquals(node, handleNode);
-        final byte[] material = handler.getRightMaterial(node.getKey(), node.getVersion());
+        final byte[] material = handler.getRightMaterial(node.getKey(),
+                node.getVersion());
         assertArrayEquals(node.getSecretKey(), material);
-        final Node plainNode = handler.getRight(node.getKey(), node.getVersion());
+        final Node plainNode = handler.getRight(node.getKey(),
+                node.getVersion());
         assertEquals(node, plainNode);
     }
 
     /**
-     * Testing layer nodes according {@link org.versacloud.HGHandler#addRight(org.versacloud.model.Node)}
+     * Testing layer nodes according
+     * {@link org.versacloud.HGHandler#addRight(org.versacloud.model.Node)}
      */
     @Test
     public void testEdges() {
@@ -140,16 +150,20 @@ public class HGHandlerTest {
                 // Removing duplicates
                 Set<Node> childrenInEdges = linksOnLayer.getFirst().getSecond();
                 Set<Pair<Set<Node>, Set<Node>>> toRemove = new HashSet<Pair<Set<Node>, Set<Node>>>();
-                // Needed for adaption of test-structures. Otherwise the duplication
+                // Needed for adaption of test-structures. Otherwise the
+                // duplication
                 for (final Pair<Set<Node>, Set<Node>> testNodes : nodesOnly) {
                     if (testNodes.getSecond().equals(childrenInEdges)) {
 
-                        // if the children-set is equal, insert all parents of the already stored one.
+                        // if the children-set is equal, insert all parents of
+                        // the already stored one.
                         toRemove.add(testNodes);
-                        linksOnLayer.getFirst().getFirst().addAll(testNodes.getFirst());
+                        linksOnLayer.getFirst().getFirst()
+                                .addAll(testNodes.getFirst());
                     }
                 }
-                // each edge containg a fixed set of children should be inserted just once
+                // each edge containg a fixed set of children should be inserted
+                // just once
                 assertTrue(toRemove.size() <= 1);
                 for (Pair<Set<Node>, Set<Node>> toRemoveSingle : toRemove) {
                     nodesOnly.remove(toRemoveSingle);
@@ -159,15 +173,16 @@ public class HGHandlerTest {
                 // link exists, there must be a suitable set for nodes as well.
                 linksOnly.add(linksOnLayer.getSecond());
                 nodesOnly.add(linksOnLayer.getFirst());
-                if (!handler.activateRight(linksOnLayer.getSecond().getTail(), linksOnLayer.getSecond()
-                    .getHead())) {
+                if (!handler.activateRight(linksOnLayer.getSecond().getTail(),
+                        linksOnLayer.getSecond().getHead())) {
                     duplicateCounter++;
                 }
             }
         }
 
         // checking, getting the data out of the db
-        final List<HGHandle> resultset = hg.findAll(handler.getHGDB(), hg.type(HGBergeLink.class));
+        final List<HGHandle> resultset = hg.findAll(handler.getHGDB(),
+                hg.type(HGBergeLink.class));
 
         // Checking for size of resulting structures
         assertEquals(resultset.size(), nodesOnly.size());
@@ -181,13 +196,14 @@ public class HGHandlerTest {
             Set<Node> parentsToCheck = new HashSet<Node>();
             Set<Node> childrenToCheck = new HashSet<Node>();
             for (HGHandle parentHandle : dbLink.getTail()) {
-                parentsToCheck.add((Node)handler.getHGDB().get(parentHandle));
+                parentsToCheck.add((Node) handler.getHGDB().get(parentHandle));
             }
             for (HGHandle childrenHandle : dbLink.getHead()) {
-                childrenToCheck.add((Node)handler.getHGDB().get(childrenHandle));
+                childrenToCheck.add((Node) handler.getHGDB()
+                        .get(childrenHandle));
             }
-            Pair<Set<Node>, Set<Node>> nodesToCheck =
-                new Pair<Set<Node>, Set<Node>>(parentsToCheck, childrenToCheck);
+            Pair<Set<Node>, Set<Node>> nodesToCheck = new Pair<Set<Node>, Set<Node>>(
+                    parentsToCheck, childrenToCheck);
             // If nodes are not in DB, fail!
             if (!nodesOnly.contains(nodesToCheck)) {
                 fail("Nodes was stored but is not in DB " + nodesToCheck);
@@ -196,7 +212,9 @@ public class HGHandlerTest {
     }
 
     /**
-     * Test method for {@link org.versacloud.HGHandler#deactivateRight(java.util.Set, java.util.Set)} .
+     * Test method for
+     * {@link org.versacloud.HGHandler#deactivateRight(java.util.Set, java.util.Set)}
+     * .
      */
     @Test
     public void testDeactivateRight() {
@@ -208,18 +226,21 @@ public class HGHandlerTest {
         // Removing the stuff
         for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> level : edges) {
             for (Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> singleLink : level) {
-                handler.deactivateRight(singleLink.getSecond().getTail(), singleLink.getSecond().getHead());
+                handler.deactivateRight(singleLink.getSecond().getTail(),
+                        singleLink.getSecond().getHead());
             }
         }
 
         // No edges should be in the set
-        List<HGHandle> edgeset = hg.findAll(handler.getHGDB(), hg.type(HGBergeLink.class));
+        List<HGHandle> edgeset = hg.findAll(handler.getHGDB(),
+                hg.type(HGBergeLink.class));
         assertEquals(0, edgeset.size());
 
     }
 
     /**
-     * Test method for {@link org.versacloud.HGHandler#removeRight(org.versacloud.model.Node)}.
+     * Test method for
+     * {@link org.versacloud.HGHandler#removeRight(org.versacloud.model.Node)}.
      */
     @Test
     public void testRemoveRight() {
@@ -242,17 +263,20 @@ public class HGHandlerTest {
         }
 
         // No edges should be in the set
-        List<HGHandle> edgeset = hg.findAll(handler.getHGDB(), hg.type(HGBergeLink.class));
+        List<HGHandle> edgeset = hg.findAll(handler.getHGDB(),
+                hg.type(HGBergeLink.class));
         assertEquals(0, edgeset.size());
 
         // No node should be in the set
-        List<HGHandle> nodeset = hg.findAll(handler.getHGDB(), hg.type(Node.class));
+        List<HGHandle> nodeset = hg.findAll(handler.getHGDB(),
+                hg.type(Node.class));
         assertEquals(0, nodeset.size());
 
     }
 
     /**
-     * Test method for {@link org.versacloud.HGHandler#adaptDescendants(java.util.Set)}.
+     * Test method for
+     * {@link org.versacloud.HGHandler#adaptDescendants(java.util.Set)}.
      */
     @Test
     public void testAdaptDescendants() {
@@ -261,27 +285,31 @@ public class HGHandlerTest {
     }
 
     /**
-     * Register the edges over the handler interface and check the number of insertions
+     * Register the edges over the handler interface and check the number of
+     * insertions
      * 
      * @param edges
      *            to be inserted
      */
-    private void registerEdges(List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges) {
+    private void registerEdges(
+            List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges) {
         // Inserting the handles
         int elementCounter = 0;
         // inserting the links over the handler
         for (final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> layerSet : edges) {
             for (final Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> linksOnLayer : layerSet) {
-                // insertion in the db must occur over the handler since otherwise redundant roles covering
+                // insertion in the db must occur over the handler since
+                // otherwise redundant roles covering
                 // the same children are not eliminated.
-                if (handler.activateRight(linksOnLayer.getSecond().getTail(), linksOnLayer.getSecond()
-                    .getHead())) {
+                if (handler.activateRight(linksOnLayer.getSecond().getTail(),
+                        linksOnLayer.getSecond().getHead())) {
                     elementCounter++;
                 }
             }
         }
         // checking the inserted edges: handler.activateRight->true
-        List<HGHandle> edgeset = hg.findAll(handler.getHGDB(), hg.type(HGBergeLink.class));
+        List<HGHandle> edgeset = hg.findAll(handler.getHGDB(),
+                hg.type(HGBergeLink.class));
         assertEquals(elementCounter, edgeset.size());
 
     }
@@ -301,29 +329,33 @@ public class HGHandlerTest {
      * @param handler
      *            to generate the stuff
      * @return returning the list
-     *         level<set<<<parents(Set<Node>),children(Set<Node>)>,links<HGBergeLink>>>>
+     *         level<set<<<parents(Set<Node>),children(Set<Node
+     *         >)>,links<HGBergeLink>>>>
      */
-    private static List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> addEdge(final HGHandler handler) {
+    private static List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> addEdge(
+            final HGHandler handler) {
         // Setting nodes in different layers above each other
 
         final List<Set<Node>> nodes = new ArrayList<Set<Node>>(layers);
         for (int i = 0; i < layers; i++) {
             nodes.add(generateNodes(nodesPerLayer));
-            handler.addRight(nodes.get(i).toArray(new Node[nodes.get(i).size()]));
+            handler.addRight(nodes.get(i)
+                    .toArray(new Node[nodes.get(i).size()]));
         }
 
         // datastructure for returnval
         // a set of pairs where each pair contains the parents and sink plus the
         // related link
-        final List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges =
-            new ArrayList<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>>(layers - 1);
+        final List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> edges = new ArrayList<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>>(
+                layers - 1);
 
         // Adding edges between the layered nodes. For testing purposes, only
         // the nodes on the next layer are taken as sinks
         int i = 0;
         do {
-            edges.add(HGTestUtil.generateEdgePerLevel(nodes.get(i), nodes.get(i + 1), numberOfParents,
-                numberOfChildren, edgesPerLayer, handler.getHGDB()));
+            edges.add(HGTestUtil.generateEdgePerLevel(nodes.get(i),
+                    nodes.get(i + 1), numberOfParents, numberOfChildren,
+                    edgesPerLayer, handler.getHGDB()));
             i++;
         } while (i < layers - 1);
         return edges;

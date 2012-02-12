@@ -5,14 +5,21 @@ package org.versacloud;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HGQuery.hg;
 import org.hypergraphdb.HyperGraph;
-import org.hypergraphdb.algorithms.DefaultALGenerator;
 import org.hypergraphdb.algorithms.HGDepthFirstTraversal;
 import org.hypergraphdb.algorithms.SimpleALGenerator;
 import org.hypergraphdb.atom.HGBergeLink;
@@ -206,7 +213,7 @@ public final class HGHandler implements IRightHandler {
                 + children);
 
         // Getting the handle of an existing link if present
-        HGHandle handle = findConcreteEdges(children);
+        HGHandle handle = findExactEdge(children);
 
         // an existing granted right was localized -> check the parents and
         // adapt
@@ -255,7 +262,7 @@ public final class HGHandler implements IRightHandler {
     public boolean deactivateRight(final Set<HGHandle> parents,
             final Set<HGHandle> children) {
 
-        HGHandle handle = findConcreteEdges(children);
+        HGHandle handle = findExactEdge(children);
 
         if (handle != null) {
             HGBergeLink link = (HGBergeLink) getHGDB().get(handle);
@@ -312,18 +319,22 @@ public final class HGHandler implements IRightHandler {
     }
 
     public void adaptDescendants(final Set<HGHandle> handles) {
-        for (HGHandle handle : handles) {
-            HGDepthFirstTraversal traversal = new HGDepthFirstTraversal(handle,
-                    new DefaultALGenerator(getHGDB()));
-            while (traversal.hasNext()) {
-                Pair<HGHandle, HGHandle> current = traversal.next();
-                HGBergeLink l = (HGBergeLink) getHGDB().get(current.getFirst());
-                Object atom = getHGDB().get(current.getSecond());
-                // System.out.println("Visiting atom " + atom +
-                // " pointed to by "
-                // + l);
-            }
+        ExecutorService exec = Executors.newCachedThreadPool();
+        
+        
+        
+        final Set<Future<List<HGHandle>>> returnVals = new HashSet<Future<List<HGHandle>>>();
+        final Set<HGHandle> returnValsOfOneLevel = handles;
+        for (final HGHandle handle : handles) {
+            Callable<List<HGHandle>> call = new Callable<List<HGHandle>>() {
+                @Override
+                public List<HGHandle> call() throws Exception {
+                    return getAllChildren(handle);
+                }
+            };
+            returnVals.add(exec.submit(call));
         }
+        
 
     }
 
@@ -338,13 +349,17 @@ public final class HGHandler implements IRightHandler {
 
     /**
      * Getting all handles as long as they are children, even subsets
-     * @param handle 
-     * @return
+     * 
+     * @param handle
+     *            for a starting node
+     * @return a list of handles representing the children
      */
     private List<HGHandle> getAllChildren(final HGHandle handle) {
         List<HGHandle> returnval = new ArrayList<HGHandle>();
-        List<HGHandle> handles = findEvenSubsetEdges(new HashSet<HGHandle>(
+        // Getting all links containing the handle...
+        List<HGHandle> handles = findSubsetEdges(new HashSet<HGHandle>(
                 Arrays.asList(new HGHandle[] { handle })));
+        // ...and filtering against the children relationship
         for (HGHandle tmpHandle : handles) {
             HGBergeLink link = (HGBergeLink) getHGDB().get(tmpHandle);
             returnval.addAll(link.getHead());
@@ -361,7 +376,7 @@ public final class HGHandler implements IRightHandler {
      * @return a list with a links containg all children even though the
      *         children might only be subsets.
      */
-    private List<HGHandle> findEvenSubsetEdges(final Set<HGHandle> children) {
+    private List<HGHandle> findSubsetEdges(final Set<HGHandle> children) {
         // finding the handles in the db and if no handles are present for an
         // edge, usea new array
         List<HGHandle> handles;
@@ -388,9 +403,9 @@ public final class HGHandler implements IRightHandler {
      *            taking the head if true, the tail otherwise
      * @return the handle of the edge if present, null otherwise
      */
-    private HGHandle findConcreteEdges(final Set<HGHandle> children) {
+    private HGHandle findExactEdge(final Set<HGHandle> children) {
 
-        List<HGHandle> handles = findEvenSubsetEdges(children);
+        List<HGHandle> handles = findSubsetEdges(children);
 
         // This statement is the more fine granular statement to find exact the
         // one and only set containing the elements either as parents or

@@ -18,6 +18,7 @@ import org.hypergraphdb.HGHandle;
 import org.hypergraphdb.HyperGraph;
 import org.hypergraphdb.atom.HGBergeLink;
 import org.hypergraphdb.util.Pair;
+import org.versacloud.api.IHandlerListener;
 import org.versacloud.model.Node;
 
 /**
@@ -235,7 +236,14 @@ public class HGTestUtil {
             final HGHandle handle = handler.getRightHandle(node.getKey(), node.getVersion());
             final Set<HGHandle> handles = new HashSet<HGHandle>();
             handles.add(handle);
-            Set<HGHandle> descendants = handler.getDescendants(handles);
+            Set<HGHandle> descendants = handler.getDescendants(handles, new IHandlerListener() {
+
+                @Override
+                public boolean touchedChildren(Set<HGHandle> children) {
+                    // TODO Auto-generated method stub
+                    return false;
+                }
+            });
             System.out.println(descendants);
         }
 

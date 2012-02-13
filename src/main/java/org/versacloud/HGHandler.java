@@ -27,6 +27,7 @@ import org.hypergraphdb.indexing.HGKeyIndexer;
 import org.hypergraphdb.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.versacloud.api.IHandlerListener;
 import org.versacloud.api.IRightHandler;
 import org.versacloud.model.Node;
 
@@ -295,16 +296,18 @@ public final class HGHandler implements IRightHandler {
      * 
      * @param handles
      *            a set of handles to start
+     * @param listener
+     *            to register for updates
      * @param Method
      *            to invoke within each iteration
      */
-    public Set<HGHandle> getDescendants(final Set<HGHandle> handles) {
+    public Set<HGHandle> getDescendants(final Set<HGHandle> handles, final IHandlerListener listener) {
         // Threadpool for executing the iteration
-        final ExecutorService exec = Executors.newCachedThreadPool();
+        final ExecutorService exec = Executors.newSingleThreadScheduledExecutor();
         final Set<HGHandle> resultSet = new HashSet<HGHandle>();
 
         // finishing variable...ensuring iteration until all levels are iterated
-        boolean finished = handles.size() != 0;
+        boolean finished = handles.size() == 0;
         // init of handles per level;
         Set<HGHandle> returnValsOfOneLevel = handles;
         // while the finishing runs,...
@@ -342,7 +345,9 @@ public final class HGHandler implements IRightHandler {
                 resultSet.addAll(returnValsFromFuture);
             }
             // see if there are new nodes to be evaluated
-            finished = returnValsOfOneLevel.size() != 0;
+            finished = returnValsOfOneLevel.size() == 0;
+
+            listener.touchedChildren(returnValsOfOneLevel);
         }
         exec.shutdown();
         return resultSet;
@@ -395,6 +400,7 @@ public final class HGHandler implements IRightHandler {
             // All handles are used which point to the elements. This includes
             // subsets.
             handles = hg.findAll(getHGDB(), hg.link(children));
+
             LOGGER.debug("Found handles " + handles);
         } catch (final RuntimeException exc) {
             handles = new ArrayList<HGHandle>();

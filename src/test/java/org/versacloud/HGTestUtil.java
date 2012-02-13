@@ -91,12 +91,11 @@ public class HGTestUtil {
      *         <<parents(Set<Node>),children(Set<Node>)>,links<HGBergeLink>>
      */
     public static Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> generateEdgePerLevel(
-            final Set<Node> parents, final Set<Node> children,
-            final int numberOfParentsToInclude,
-            final int numberOfChildrenToInclude, final int numberOfEdges,
-            final HyperGraph graph) {
+        final Set<Node> parents, final Set<Node> children, final int numberOfParentsToInclude,
+        final int numberOfChildrenToInclude, final int numberOfEdges, final HyperGraph graph) {
 
-        final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> returnval = new HashSet<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>();
+        final Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> returnval =
+            new HashSet<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>();
 
         for (int i = 0; i < numberOfEdges; i++) {
 
@@ -113,8 +112,7 @@ public class HGTestUtil {
             Set<Node> childrenNodes = new HashSet<Node>();
             // getting the parents
             for (int j = 0; j < numberOfParentsToInclude; j++) {
-                Node parent = allParentsList.get(ran.nextInt(allParentsList
-                        .size()));
+                Node parent = allParentsList.get(ran.nextInt(allParentsList.size()));
                 HGHandle handle = graph.getHandle(parent);
                 // Check that each node is only once in the set
                 if (parentHandles.contains(handle)) {
@@ -127,8 +125,7 @@ public class HGTestUtil {
             }
             // getting the children
             for (int j = 0; j < numberOfChildrenToInclude; j++) {
-                Node child = allChildrenList.get(ran.nextInt(allChildrenList
-                        .size()));
+                Node child = allChildrenList.get(ran.nextInt(allChildrenList.size()));
                 HGHandle handle = graph.getHandle(child);
                 // Check that each node is only once in the set
                 if (childrenHandles.contains(handle)) {
@@ -140,16 +137,14 @@ public class HGTestUtil {
                 }
             }
             // Setting testing pair
-            Pair<Set<Node>, Set<Node>> setPair = new Pair<Set<Node>, Set<Node>>(
-                    parentNodes, childrenNodes);
+            Pair<Set<Node>, Set<Node>> setPair = new Pair<Set<Node>, Set<Node>>(parentNodes, childrenNodes);
             // Generating a link covering the denoted children and parents
-            HGBergeLink link = new HGBergeLink(
-                    childrenHandles
-                            .toArray(new HGHandle[childrenHandles.size()]),
-                    parentHandles.toArray(new HGHandle[parentHandles.size()]));
+            HGBergeLink link =
+                new HGBergeLink(childrenHandles.toArray(new HGHandle[childrenHandles.size()]), parentHandles
+                    .toArray(new HGHandle[parentHandles.size()]));
             // Generating final set
-            Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> returnSet = new Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>(
-                    setPair, link);
+            Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink> returnSet =
+                new Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>(setPair, link);
 
             // if link is existing, do not submit it
             if (returnval.contains(returnSet)) {
@@ -196,9 +191,10 @@ public class HGTestUtil {
      *         links
      */
     public static List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> insertFixedEdges(
-            final HyperGraph graph) {
+        final HyperGraph graph) {
 
-        final List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> returnval = new ArrayList<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>>();
+        final List<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>> returnval =
+            new ArrayList<Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>>();
 
         // nodes, first dim=#nodes, second dim=levle
         final Node[][] levelNodes = new Node[3][3];
@@ -213,22 +209,19 @@ public class HGTestUtil {
         }
 
         for (int j = 0; j < levelNodes.length - 1; j++) {
-            Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> level = new HashSet<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>();
+            Set<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>> level =
+                new HashSet<Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>>();
             for (int i = 0; i < levelNodes[j].length; i++) {
                 Set<Node> children = new HashSet<Node>();
                 Set<Node> parent = new HashSet<Node>();
-                parent.addAll(Arrays.asList(Arrays.copyOfRange(levelNodes[j],
-                        0, i+1)));
-                children.addAll(Arrays.asList(Arrays.copyOfRange(
-                        levelNodes[j + 1], 0, i+1)));
-                Pair<Set<Node>, Set<Node>> edgeNodes = new Pair<Set<Node>, Set<Node>>(
-                        children, parent);
-                HGBergeLink link = new HGBergeLink(Arrays.copyOfRange(
-                        levelHandle[j + 1], 0, i+1), Arrays.copyOfRange(
-                        levelHandle[j], 0, i+1));
+                parent.addAll(Arrays.asList(Arrays.copyOfRange(levelNodes[j], 0, i + 1)));
+                children.addAll(Arrays.asList(Arrays.copyOfRange(levelNodes[j + 1], 0, i + 1)));
+                Pair<Set<Node>, Set<Node>> edgeNodes = new Pair<Set<Node>, Set<Node>>(children, parent);
+                HGBergeLink link =
+                    new HGBergeLink(Arrays.copyOfRange(levelHandle[j + 1], 0, i + 1), Arrays.copyOfRange(
+                        levelHandle[j], 0, i + 1));
                 graph.add(link);
-                level.add(new Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>(
-                        edgeNodes, link));
+                level.add(new Pair<Pair<Set<Node>, Set<Node>>, HGBergeLink>(edgeNodes, link));
 
             }
             returnval.add(level);
@@ -237,13 +230,12 @@ public class HGTestUtil {
         return returnval;
     }
 
-    
-    
     public static void checkLinks(final Set<Node> nodes, final HGHandler handler) {
         for (Node node : nodes) {
-            final HGHandle handle = handler.getRightHandle(node.getKey(),
-                    node.getVersion());
-            HGHandle[] descendants = handler.getDescendants(handle);
+            final HGHandle handle = handler.getRightHandle(node.getKey(), node.getVersion());
+            final Set<HGHandle> handles = new HashSet<HGHandle>();
+            handles.add(handle);
+            Set<HGHandle> descendants = handler.getDescendants(handles);
             System.out.println(descendants);
         }
 

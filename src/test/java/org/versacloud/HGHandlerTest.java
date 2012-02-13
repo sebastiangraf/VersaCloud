@@ -276,7 +276,7 @@ public class HGHandlerTest {
 
     /**
      * Test method for
-     * {@link org.versacloud.HGHandler#adaptDescendants(java.util.Set)}.
+     * {@link org.versacloud.HGHandler#getDescendants(java.util.Set)}.
      */
     @Test
     public void testAdaptDescendants() {
